@@ -37,7 +37,7 @@ show_help() {
   echo
   printf "%-10s | %-42s | %s\n" "Action" "Target" "Description"
   printf "%-10s-+-%-42s-+-%s\n" "----------" "------------------------------------------" "----------------------------------------"
-  printf "%-10s | %-42s | %s\n" "auth" "-" "Authenticate gcloud CLI"
+  printf "%-10s | %-42s | %s\n" "auth" "login, logout" "Authenticate or revoke gcloud CLI"
   printf "%-10s | %-42s | %s\n" "build" "clean, watch, lumostradetool" "Build helpers and tools"
   printf "%-10s | %-42s | %s\n" "deploy" "all, allparallel, lumosapp, lumosagents," "Deploy services for the ${ENV_NAME} environment"
   printf "%-10s | %-42s | %s\n" "" "lumosdb, lumostradetool" ""
@@ -532,16 +532,69 @@ case "$operation" in
     ;;
 
   auth)
-    # Authenticate gcloud CLI for the selected environment
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    AUTH_SCRIPT="$SCRIPT_DIR/_auth_gcp.sh"
-    if [ ! -f "$AUTH_SCRIPT" ]; then
-      echo "Error: auth script not found at $AUTH_SCRIPT" >&2
-      exit 1
+    # Authenticate or logout of gcloud CLI
+    if [ "$#" -eq 0 ]; then
+      echo "Available auth targets:"
+      echo "  login     Authenticate with Google Cloud (default)"
+      echo "  logout    Revoke Google Cloud authentication"
+      exit 0
     fi
 
-    echo "Auth operation -> invoking $AUTH_SCRIPT"
-    bash "$AUTH_SCRIPT"
+    target="$1"
+    case "$target" in
+      login)
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        AUTH_SCRIPT="$SCRIPT_DIR/_auth_gcp.sh"
+        if [ ! -f "$AUTH_SCRIPT" ]; then
+          echo "Error: auth script not found at $AUTH_SCRIPT" >&2
+          exit 1
+        fi
+
+        echo "Auth target: login -> invoking $AUTH_SCRIPT"
+        bash "$AUTH_SCRIPT"
+        ;;
+
+      logout)
+        echo "Auth target: logout -> revoking gcloud authentication"
+        echo ""
+        
+        # Check for regular gcloud accounts
+        ACCOUNTS=$(gcloud auth list --format='value(account)' 2>/dev/null)
+        
+        # Check for application-default credentials
+        HAS_APP_DEFAULT=false
+        if gcloud auth application-default print-access-token &>/dev/null; then
+          HAS_APP_DEFAULT=true
+        fi
+
+        if [ -n "$ACCOUNTS" ] || [ "$HAS_APP_DEFAULT" = true ]; then
+          # Revoke regular accounts if any exist
+          if [ -n "$ACCOUNTS" ]; then
+            echo "Revoking authenticated accounts..."
+            gcloud auth revoke --all
+          fi
+          
+          # Revoke application-default credentials if they exist
+          if [ "$HAS_APP_DEFAULT" = true ]; then
+            echo "Revoking application-default credentials..."
+            gcloud auth application-default revoke
+          fi
+          
+          echo ""
+          echo "✓ Successfully logged out of Google Cloud"
+        else
+          echo "✓ No authenticated accounts found. Already logged out."
+        fi
+        ;;
+
+      *)
+        echo "Unknown auth target: $target" >&2
+        echo "Available auth targets:"
+        echo "  login"
+        echo "  logout"
+        exit 2
+        ;;
+    esac
     ;;
 
   install)
