@@ -162,3 +162,4 @@ npm-debug.log*
 .DS_Store
 session.db
 LumosAI/Tools/LumosDB/toolbox
+config/demo.env
