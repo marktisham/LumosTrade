@@ -32,7 +32,8 @@ RUN npm run build
 
 FROM node:22-slim AS runtime
 
-ENV NODE_ENV=production
+ARG NODE_ENV=production
+ENV NODE_ENV=${NODE_ENV}
 WORKDIR /app/LumosAI/Tools/LumosTradeTool
 
 # Bring runtime deps + built output

@@ -33,6 +33,74 @@ CONFIG_DIR="$SCRIPT_DIR/config"
 SHELL_PID="${PPID:-$$}"
 ENV_CACHE_FILE="/tmp/lumos-env-$SHELL_PID"
 
+# Check gcloud authentication early, before environment setup
+# Skip check only for: help (when environment already exists) and the auth command itself
+ACTION="${1:-}"
+SKIP_AUTH_CHECK=false
+
+# Check if there's a cached or preset environment
+CACHED_ENV=""
+if [ -n "${LUMOS_ENVIRONMENT:-}" ]; then
+  CACHED_ENV="$LUMOS_ENVIRONMENT"
+elif [ -f "$ENV_CACHE_FILE" ]; then
+  CACHED_ENV=$(cat "$ENV_CACHE_FILE")
+fi
+
+# Also check if cached environment actually exists
+if [ -n "$CACHED_ENV" ] && [ ! -f "$CONFIG_DIR/${CACHED_ENV}.env" ]; then
+  CACHED_ENV=""
+fi
+
+case "$ACTION" in
+  ""|help)
+    # Only skip auth check if an environment exists
+    if [ -n "$CACHED_ENV" ]; then
+      SKIP_AUTH_CHECK=true
+    fi
+    ;;
+  auth)
+    SKIP_AUTH_CHECK=true
+    ;;
+esac
+
+if [ "$SKIP_AUTH_CHECK" = false ]; then
+  # Check if gcloud has authenticated account OR application-default credentials
+  HAS_AUTH=false
+  if [ -n "$(gcloud auth list --format='value(account)' 2>/dev/null | head -1)" ]; then
+    HAS_AUTH=true
+  elif gcloud auth application-default print-access-token &>/dev/null; then
+    HAS_AUTH=true
+  fi
+
+  if [ "$HAS_AUTH" = false ]; then
+    echo "⚠️  GCloud authentication required"
+    echo ""
+    echo "You need to authenticate with Google Cloud to continue."
+    echo "After authentication, you'll be able to select or create an environment."
+    echo ""
+    read -p "Would you like to log in now? (y/n): " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      echo ""
+      echo "Starting authentication..."
+      echo ""
+      # Run gcloud auth login to set active account (needed for CLI commands)
+      gcloud auth login
+      echo ""
+      # Also set up application-default credentials (needed for API access)
+      echo "Setting up application-default credentials..."
+      gcloud auth application-default login
+      echo ""
+      echo "✓ Authentication complete"
+      echo ""
+    else
+      echo ""
+      echo "Exiting. Run './lumos auth login' when ready to authenticate."
+      exit 1
+    fi
+  fi
+fi
+
 # Function to list available environments
 list_environments() {
   local envs=()
@@ -45,7 +113,7 @@ list_environments() {
       fi
     fi
   done
-  echo "${envs[@]}"
+  echo "${envs[@]+"${envs[@]}"}"
 }
 
 # Function to prompt user to select or create environment
@@ -463,6 +531,13 @@ delete_environment() {
 
 # List of known actions (from _invoker.sh)
 KNOWN_ACTIONS=("auth" "build" "deploy" "env" "install" "run" "secrets" "service" "sql")
+
+# Special handling for auth command - bypass environment loading
+if [ "${1:-}" = "auth" ]; then
+  # Auth command doesn't need an environment, call invoker directly
+  bash "$SCRIPT_DIR/shell/_invoker.sh" "$@"
+  exit 0
+fi
 
 # Check if first parameter is an environment name (not a known action)
 if [ -n "${1:-}" ]; then

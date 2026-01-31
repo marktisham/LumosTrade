@@ -63,7 +63,7 @@ echo "🔨 Building the container with Cloud Build and pushing to ${IMAGE_URL}..
 CLOUDBUILD_CONFIG="${SCRIPT_DIR}/cloudbuild.yaml"
 gcloud builds submit "${LUMOS_ROOT_DIR}" \
   --config "${CLOUDBUILD_CONFIG}" \
-  --substitutions _IMAGE_URL="${IMAGE_URL}" \
+  --substitutions _IMAGE_URL="${IMAGE_URL}",_NODE_ENV="${LUMOS_ENVIRONMENT}" \
   --project "${PROJECT_ID}"
 
 # 4) Deploy to Cloud Run
