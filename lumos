@@ -735,9 +735,12 @@ if [ ! -f "$BASE_ENV_FILE" ]; then
   BASE_ENV_FILE="$CONFIG_DIR/${LUMOS_ENVIRONMENT}.env"
 fi
 
-# Generate expanded env file if it doesn't exist
+# Generate expanded env file if it doesn't exist or is outdated
 if [ ! -f "$ENV_FILE" ]; then
   echo "Generating expanded environment file..."
+  bash "$SCRIPT_DIR/shell/_expand_env.sh"
+elif [ "$BASE_ENV_FILE" -nt "$ENV_FILE" ]; then
+  echo "Source environment file has been updated. Regenerating expanded file..."
   bash "$SCRIPT_DIR/shell/_expand_env.sh"
 fi
 
