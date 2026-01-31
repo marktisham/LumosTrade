@@ -1,0 +1,1591 @@
+body {
+  font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background: #1a1a1a;
+  color: #e8e8e8;
+}
+
+:root {
+  /* Brighter profit / loss colors for dark mode */
+  --profit-color: #00c853;
+  --profit-bright: #00c853; /* brighter hover color */
+  --loss-color: #ff4d4f;
+  /* AI accent colors (used for hero AI buttons and related accents) */
+  --ai-color: #4a90e2;
+  --ai-color-dark: #3b7bc9;
+  /* AI gray accent for card titles/icons (higher contrast) */
+  --ai-gray: #e6e8e9; /* brighter title color for stronger contrast */
+  --ai-gray-dark: #9aa0a3; /* darker for circles/badges */
+  /* Darker green for card accents */
+  --profit-dark: #157347; /* dark green */
+  /* Brighter backgrounds so cards and table cells pop on dark theme */
+  --profit-bg: #0f7d45; /* lighter/drier green */
+  --loss-bg: #8b2222;   /* deeper, but noticeably brighter red */
+
+  /* Rollup / card gradient colors (muted compared to table cells) */
+  --profit-card-start: #124e2b;
+  --profit-card-end: #165f3b;
+  --loss-card-start: #5f1616;
+  --loss-card-end: #7a1a1a;
+}  
+
+/* Override Bootstrap's text-muted for better dark mode visibility */
+.text-muted {
+  color: #9ca3af !important;
+}
+
+/* Ensure links maintain proper colors */
+a {
+  color: #4a9eff;
+}
+
+a:hover {
+  color: #7ab8ff;
+}
+
+/* Card styles for dark mode */
+.card {
+  background-color: #2d2d2d;
+  border-color: #454545;
+}
+
+.card-body {
+  color: #e8e8e8;
+}
+
+/* Form controls and dropdowns dark mode styling */
+.form-select,
+.form-control {
+  background-color: #2d2d2d;
+  border-color: #454545;
+  color: #e8e8e8;
+}
+
+.form-select:focus,
+.form-control:focus {
+  background-color: #353535;
+  border-color: #555555;
+  color: #e8e8e8;
+}
+
+/* Placeholder text styling for dark mode */
+.form-control::placeholder,
+input.form-control::placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+.form-control::-webkit-input-placeholder,
+input.form-control::-webkit-input-placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+.form-control::-moz-placeholder,
+input.form-control::-moz-placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+.form-control:-ms-input-placeholder,
+input.form-control:-ms-input-placeholder {
+  color: #9ca3af !important;
+  opacity: 1;
+}
+
+.form-select option {
+  background-color: #2d2d2d;
+  color: #e8e8e8;
+}
+
+.dropdown-menu {
+  background-color: #2d2d2d;
+  border-color: #454545;
+}
+
+.dropdown-item {
+  color: #e8e8e8;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: #3a3a3a;
+  color: #e8e8e8;
+}
+
+.dropdown-item.active {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+/* Button styles for dark mode */
+.btn-outline-secondary {
+  color: #e8e8e8;
+  background-color: #2d2d2d;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  color: #e8e8e8;
+  background-color: #3a3a3a;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary:focus,
+.btn-outline-secondary:active {
+  color: #e8e8e8;
+  background-color: #3a3a3a;
+  border-color: #6c757d;
+}
+
+/* Ensure active toggle buttons are visibly selected */
+.btn-outline-secondary.active,
+.btn-outline-secondary.active:hover,
+.btn-outline-secondary.active:focus {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-outline-secondary.dropdown-toggle {
+  background-color: #2d2d2d;
+}
+
+nav a {
+  text-decoration: none;
+}
+nav a:hover {
+  text-decoration: underline;
+}
+/* Expected Moves title should underline on hover */
+h2[data-reset-expected-moves] {
+  text-decoration: none;
+}
+h2[data-reset-expected-moves]:hover,
+h2[data-reset-expected-moves]:focus {
+  text-decoration: underline;
+}
+footer {
+  text-align: center;
+  font-size: 0.95em;
+  color: #9ca3af;
+  padding-top:1em;
+  margin-top: 1em;
+  box-shadow: none;
+  background: none;
+}
+
+.sortable-column {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sort-indicator {
+  display: inline-flex;
+  align-items: flex-end;
+  height: 1em;
+  margin-left: 0.35rem;
+  font-size: 0.85em;
+  line-height: 1;
+}
+
+.sortable-column:focus-visible {
+  outline: 2px solid #4a9eff;
+  outline-offset: 2px;
+}
+
+/* Enhanced table styling */
+.table tbody tr {
+  transition: none;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #242424;
+}
+
+.table tbody tr:nth-child(odd) {
+  background-color: #2a2a2a;
+}
+
+.table tbody tr:hover {
+  background: linear-gradient(to right, #3a3a1a, #2a2a2a) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  cursor: default;
+}
+
+/* Dark-themed table for agent-generated HTML (reusable) */
+.lumos-dark-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(30, 30, 30, 0.6);
+  color: #e8e8e8;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 16px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.lumos-dark-table th {
+  background-color: rgba(50, 50, 50, 0.8);
+  color: #c8c8c8;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+}
+.lumos-dark-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+}
+.lumos-dark-table tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.02); }
+.lumos-dark-table .l { text-align: left; }
+.lumos-dark-table .c { text-align: center; font-family: 'Roboto Mono', monospace; }
+.lumos-dark-table .p { color: #4ade80; font-weight: bold; } /* Positive green */
+.lumos-dark-table .n { color: #f87171; font-weight: bold; } /* Negative red */
+
+/* Compact variant: smaller padding and font for dense tables */
+.lumos-dark-table--compact {
+  margin: 8px 0;
+  border-radius: 6px;
+}
+.lumos-dark-table--compact th {
+  padding: 8px 6px;
+  font-size: 11px;
+}
+.lumos-dark-table--compact td {
+  padding: 6px 8px;
+  font-size: 12px;
+}
+.lumos-dark-table--compact .c { font-family: 'Roboto Mono', monospace; }
+.lumos-dark-table--compact tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.03); }
+
+/* Override cursor for comment cell - make it clickable */
+.table tbody tr td:has(.comment-cell-wrapper) {
+  cursor: pointer !important;
+}
+
+/* Hide pencil icon by default, show on hover */
+.comment-edit-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.comment-cell-wrapper:hover .comment-edit-icon {
+  opacity: 1;
+}
+
+.table thead th {
+  border-bottom: 2px solid rgba(255,255,255,0.2);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 12px 8px;
+  background-color: #1f1f1f;
+  color: #e8e8e8;
+}
+
+.table tbody td {
+  padding: 10px 8px;
+  vertical-align: middle;
+}
+
+/* Colorize specific columns */
+.table tbody td:has(.text-success) {
+  background-color: var(--profit-bg); /* trades win color - dark green */
+}
+
+.table tbody td:has(.text-danger) {
+  background-color: var(--loss-bg); /* trades loss color - dark red */
+}
+
+/* Also recognize neutral indicator spans so we can color the cell background
+   without changing the text color inside the span. This matches the trades view
+   behavior but preserves default text color. */
+.table tbody td:has(.val-positive) {
+  background-color: var(--profit-bg);
+}
+
+.table tbody td:has(.val-negative) {
+  background-color: var(--loss-bg);
+}
+
+/* Helper classes for explicit usage */
+.cell-win-bg { background-color: var(--profit-bg) !important; }
+.cell-loss-bg { background-color: var(--loss-bg) !important; }
+
+.badge-win { background-color: var(--profit-bg); color: var(--profit-color); }
+.badge-loss { background-color: var(--loss-bg); color: var(--loss-color); }
+
+/* Tooltip helpers for trades page */
+.tooltip .tooltip-inner {
+  text-align: left;
+  white-space: nowrap;
+  max-width: none;
+}
+
+.tooltip .tooltip-inner .tooltip-line {
+  margin: 0;
+  text-align: left;
+}
+
+.tooltip .tooltip-inner .gain-positive {
+  color: #00c853;
+}
+
+.tooltip .tooltip-inner .gain-negative {
+  color: #ff4d4f;
+}
+
+/* Home page card styles */
+.home-hero { margin-bottom: 0 !important; }
+.home-section-title {
+  font-weight: 600;
+  color: #e8e8e8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Make the small description next to each home section title brighter for dark mode */
+.home-section-header .text-secondary {
+  color: #e6e6e6 !important;
+}
+
+/* Brighter green for home page section titles, icons and saved view badges */
+.home-section-header .text-success,
+.home-card .card-icon.text-success,
+.home-card .list-group-item .text-success,
+.home-card .list-group-item i.text-success {
+  color: var(--profit-color) !important; /* uses #00c853 defined earlier */
+  text-shadow: 0 1px 0 rgba(0,0,0,0.25);
+}
+
+/* Ensure any .text-success or icon inside .home-card (Saved Views label, icons, badges)
+   uses the same brighter green */
+.home-card .text-success,
+.home-card i.text-success,
+.home-card .fa-solid.text-success,
+.home-card .fa-regular.text-success,
+.home-card .card-icon i.text-success {
+  color: var(--profit-color) !important;
+}
+
+
+.home-card {
+  transition: all 0.25s ease;
+  border: 1px solid #454545;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #2d2d2d;
+}
+.home-card.home-card-sm .card-body {
+  padding: 1.5rem 1rem;
+  min-height: auto;
+}
+
+.home-card .card-body {
+  padding: 2.5rem 1.5rem;
+  min-height: auto;
+}
+
+.home-card .card-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  opacity: 0.95;
+  color: var(--profit-dark); /* use dark green for card icons */
+} 
+
+.home-card .card-title {
+  font-size: 1.125rem;
+  font-weight: 700; /* stronger weight for legibility */
+  color: var(--profit-dark); /* darker green title */
+} 
+
+/* Brighter, more legible text for home cards in dark mode */
+.home-card .card-text {
+  font-size: 0.95rem;
+  color: #e6e6e6; /* brighter than previous #9ca3af */
+}
+
+/* Make hero lead and home-specific secondary text more readable on dark backgrounds */
+.home-hero .lead,
+.home-card .list-group-item,
+.home-card .card-chevron {
+  color: #e8e8e8;
+}
+
+/* AI action buttons (home hero) - lighter non-green accent */
+.btn-ai {
+  background: linear-gradient(135deg, #4a90e2 0%, #6fb3ff 100%);
+  color: #ffffff;
+  border: none;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(74, 144, 226, 0.15);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+}
+
+.btn-ai:hover {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.btn-ai:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.12);
+}
+
+.btn-ai.btn-sm {
+  padding: 0.33rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+/* Ensure hero buttons don't remain green if .btn-success is present */
+.home-hero .btn-ai {
+  color: #ffffff;
+}
+
+/* Override Bootstrap's .text-secondary (which may use !important). Use higher-specificity
+   selectors and !important so home page items remain legible in dark mode. */
+.home-hero .lead.text-secondary,
+.home-card .card-text.text-secondary,
+.home-card .list-group-item.text-secondary,
+.home-card .card-chevron.text-secondary {
+  color: #e8e8e8 !important;
+}
+
+/* Ensure card descriptions are brighter even if .text-secondary is present */
+.home-card .card-text.text-secondary {
+  color: #e6e6e6 !important;
+}
+
+.home-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6) !important;
+  border-color: #555555;
+  background-color: #353535;
+}
+
+/* Home Tabbed Interface Styles */
+.home-tabs-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background-color: #1a1a1a;
+  border-bottom: 2px solid #454545;
+  padding: 1rem 0 0 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.home-nav-tabs {
+  border-bottom: none;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.home-nav-tabs .nav-link {
+  color: #b0b0b0;
+  background-color: #2d2d2d;
+  border: 1px solid #454545;
+  border-radius: 8px 8px 0 0;
+  padding: 0.75rem 2rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-bottom: none;
+}
+
+.home-nav-tabs .nav-link:hover {
+  color: #198754;
+  background-color: #353535;
+  border-color: #198754;
+}
+
+.home-nav-tabs .nav-link.active {
+  color: #fff;
+  background: linear-gradient(135deg, #198754 0%, #20a767 100%);
+  border-color: #198754;
+  border-bottom: 2px solid #198754;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(25, 135, 84, 0.3);
+}
+
+.home-nav-tabs .nav-link i {
+  margin-right: 0.5rem;
+}
+
+.home-tab-content {
+  padding: 1.5rem 0 3rem 0;
+}
+
+/* Updated Home Card Styles for Tabbed Layout */
+.home-card {
+  transition: all 0.25s ease;
+  border: 1px solid #454545;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #2d2d2d;
+  min-height: auto;
+}
+
+.home-card .card-body {
+  padding: 1.25rem 1rem;
+  min-height: auto;
+}
+
+.home-card-header {
+  gap: 0.75rem;
+}
+
+.home-card-icon-circle {
+  width: 50px;
+  height: 50px;
+  background-color: var(--ai-gray); /* light circle so dark icon stands out */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.12);
+}
+
+.home-card-icon-circle:hover {
+  background-color: var(--ai-gray-dark);
+  transform: translateY(-1px);
+}
+
+.home-card-icon-circle i {
+  color: var(--profit-dark) !important; /* dark green icon */
+}   
+
+.home-card-icon-circle i {
+  font-size: 1.5rem;
+  color: #ffffff; /* icon inside circle should be white */
+}
+
+.home-card .card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ai-gray); /* use AI gray for titles */
+}  
+
+.home-card .card-title a {
+  color: var(--ai-gray);
+  transition: color 0.2s ease;
+}
+
+.home-card .card-title a:hover {
+  color: var(--profit-bright);
+  text-decoration: underline;
+} 
+
+.home-card .card-text {
+  font-size: 0.875rem;
+  color: #b0b0b0;
+}
+
+.home-card-arrow {
+  margin-left: auto;
+  align-self: flex-end;
+  color: var(--ai-gray); /* use AI gray */
+  font-size: 1.25rem;
+  opacity: 0.6;
+  transition: all 0.25s ease;
+} 
+
+.home-card:hover .home-card-arrow {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Saved Views Section */
+.home-saved-views {
+  border-top: 1px solid #454545;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  position: relative;
+  z-index: 2;
+}
+
+.home-saved-views-label {
+  color: #e8e8e8; /* match card text color */
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 0.5rem;
+} 
+
+.home-saved-views-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.home-saved-views-list li {
+  flex: 0 1 calc(33.333% - 0.25rem);
+  min-width: 0;
+}
+
+.home-saved-views-list a {
+  color: #e8e8e8;
+  text-decoration: none;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background-color: transparent;
+  width: 100%;
+  word-break: break-word;
+}
+
+.home-saved-views-list a i {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.home-saved-views-list a:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.home-saved-views-list a:hover i {
+  color: #ffffff !important;
+}
+
+/* Force saved-view bookmark icons and related small elements to match the darker green */
+.home-saved-views-list a i,
+.home-card .home-saved-views-list a i,
+.home-card .list-group-item a i,
+.home-card .list-group-item .text-success {
+  color: var(--profit-dark) !important;
+}
+
+/* Saved Views title should use the card text color and be bold */
+.home-saved-views-label {
+  color: #e8e8e8 !important;
+  font-weight: 700;
+}
+
+/* Make the bookmark icon itself use the darker green */
+.home-saved-views-list a i.fa-bookmark {
+  color: var(--profit-dark) !important;
+  background: transparent !important;
+}
+
+.home-saved-views-list a i {
+  color: var(--bs-success);
+  font-size: 0.75rem;
+}
+
+/* Mobile Home Icon Button in Navbar */
+.navbar-home-icon {
+  color: #ffffff;
+  font-size: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.5rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+}
+
+.navbar-home-icon:hover {
+  opacity: 0.8;
+  color: #ffffff;
+}
+
+/* Responsive adjustments for tabbed interface */
+@media (max-width: 767px) {
+  .home-nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 0 1rem;
+    scrollbar-width: thin;
+  }
+  
+  .home-nav-tabs .nav-link {
+    white-space: nowrap;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+  
+  .home-hero {
+    padding: 1.5rem 1rem;
+  }
+  
+  .home-hero h1 {
+    font-size: 1.8rem;
+  }
+}
+
+/* History page: make order links match surrounding text (not blue), but underline on hover */
+.history-page a {
+  color: inherit;
+  text-decoration: none;
+}
+.history-page a:hover,
+.history-page a:focus {
+  color: inherit;
+  text-decoration: underline;
+}
+
+/* Specifically override Bootstrap utilities like .text-decoration-none when used
+   for numeric order links in the history table so they underline on hover */
+.history-page a.text-decoration-none {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.history-page a.text-decoration-none:hover,
+.history-page a.text-decoration-none:focus {
+  color: inherit !important;
+  text-decoration: underline !important;
+}
+
+/* Accounts page: make order links (numeric) match surrounding text and underline on hover */
+.accounts-page a {
+  color: inherit;
+  text-decoration: none;
+}
+.accounts-page a:hover,
+.accounts-page a:focus {
+  color: inherit;
+  text-decoration: underline;
+}
+.accounts-page a.text-decoration-none {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.accounts-page a.text-decoration-none:hover,
+.accounts-page a.text-decoration-none:focus {
+  color: inherit !important;
+  text-decoration: underline !important;
+}
+
+/* Account History page shares same link behavior as history/accounts pages */
+.account-history-page a {
+  color: inherit;
+  text-decoration: none;
+}
+.account-history-page a:hover,
+.account-history-page a:focus {
+  color: inherit;
+  text-decoration: underline;
+}
+.account-history-page a.text-decoration-none {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.account-history-page a.text-decoration-none:hover,
+.account-history-page a.text-decoration-none:focus {
+  color: inherit !important;
+  text-decoration: underline !important;
+}
+
+/* Trades page shares same link behavior */
+.trades-page a {
+  color: inherit;
+  text-decoration: none;
+}
+.trades-page a:hover,
+.trades-page a:focus {
+  color: inherit;
+  text-decoration: underline;
+}
+.trades-page a.text-decoration-none {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+.trades-page a.text-decoration-none:hover,
+.trades-page a.text-decoration-none:focus {
+  color: inherit !important;
+  text-decoration: underline !important;
+}
+
+/* Also support trades/orders when there is no page class by targeting the table root */
+[data-trades-table-root] a,
+.trades-page a,
+.tradeHistory-page a {
+  color: inherit;
+  text-decoration: none;
+}
+[data-trades-table-root] a:hover,
+.trades-page a:hover,
+.tradeHistory-page a:hover,
+[data-trades-table-root] a:focus,
+.trades-page a:focus,
+.tradeHistory-page a:focus {
+  color: inherit;
+  text-decoration: underline;
+}
+[data-trades-table-root] a.text-decoration-none,
+.trades-page a.text-decoration-none,
+.tradeHistory-page a.text-decoration-none {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+[data-trades-table-root] a.text-decoration-none:hover,
+.trades-page a.text-decoration-none:hover,
+.tradeHistory-page a.text-decoration-none:hover,
+[data-trades-table-root] a.text-decoration-none:focus,
+.trades-page a.text-decoration-none:focus,
+.tradeHistory-page a.text-decoration-none:focus {
+  color: inherit !important;
+  text-decoration: underline !important;
+}
+
+/* Orders page link behavior */
+[data-orders-table-root] a,
+.orders-page a {
+  color: inherit;
+  text-decoration: none;
+}
+[data-orders-table-root] a:hover,
+.orders-page a:hover,
+[data-orders-table-root] a:focus,
+.orders-page a:focus {
+  color: inherit;
+  text-decoration: underline;
+}
+[data-orders-table-root] a.text-decoration-none,
+.orders-page a.text-decoration-none {
+  color: inherit !important;
+  text-decoration: none !important;
+}
+[data-orders-table-root] a.text-decoration-none:hover,
+.orders-page a.text-decoration-none:hover,
+[data-orders-table-root] a.text-decoration-none:focus,
+.orders-page a.text-decoration-none:focus {
+  color: inherit !important;
+  text-decoration: underline !important;
+}
+
+/* Orders/Badges helper classes to replace inline badge backgrounds */
+.badge-adjusted { background-color: var(--loss-color); color: #fff; }
+.badge-open { background-color: #1a3d66; color: #7dd3ff; }
+.badge-closed { background-color: #3a3a3a; color: #b8b8b8; }
+.badge-incomplete { background-color: #4a3a1a; color: #ffd97d; }
+
+
+.home-card:hover .card-title {
+  color: #e8e8e8;
+}
+
+/* Ensure card text doesn't switch to link/blue color on hover */
+.home-card:hover .card-text {
+  color: #9ca3af;
+}
+
+.home-card:hover .card-icon {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+/* Trades stats card styles */
+.stats-card {
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #2a2a2a 0%, #242424 100%);
+}
+
+.stats-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6) !important;
+}
+
+.stats-card-success {
+  background: linear-gradient(135deg, var(--profit-card-start) 0%, var(--profit-card-end) 100%);
+  border-left: 4px solid var(--profit-color) !important;
+}
+
+.stats-card-danger {
+  background: linear-gradient(135deg, var(--loss-card-start) 0%, var(--loss-card-end) 100%);
+  border-left: 4px solid var(--loss-color) !important;
+}
+
+.stats-card-warning {
+  background: linear-gradient(135deg, #3a3a1a 0%, #2f2f1a 100%);
+  border-left: 4px solid #ffc107 !important;
+}
+
+.stats-icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+/* Make rollup card text more legible against colored backgrounds */
+.stats-card .card-title {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #e8e8e8; /* brighter main text for contrast */
+}
+
+.stats-card .card-subtitle {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.85) !important; /* ensure subtitle is readable */
+}
+
+/* Brighter numeric text specific to profit/loss cards */
+.stats-card-success .card-title {
+  color: #bff7d8 !important; /* slightly lighter green for contrast */
+}
+.stats-card-danger .card-title {
+  color: #ffd6d6 !important; /* slightly lighter red for contrast */
+}
+
+/* Make small text in stats cards lighter */
+.stats-card .small,
+.stats-card .card-text,
+.stats-card .card-body .small {
+  color: rgba(255,255,255,0.75) !important;
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+}
+
+.hover-bg-light:hover {
+  background-color: #2a2a2a !important;
+}
+
+/* Home Card Styling */
+.home-card {
+  transition: box-shadow 0.2s ease;
+}
+.home-card:hover {
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.6)!important;
+}
+
+/* Chevron Animation */
+.card-chevron {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.2s ease;
+}
+.home-card:hover .card-chevron {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Bookmark List Item Hover */
+.list-group-item-action:hover {
+  background-color: #2a2a2a !important;
+  color: #e8e8e8 !important;
+}
+.list-group-item-action:hover i {
+  opacity: 1 !important;
+}
+
+/* Keep active styling on disabled navigation buttons */
+.btn-outline-secondary.active:disabled,
+.btn-outline-secondary.active[disabled] {
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+/* Responsive toolbar improvements ------------------------------------------------- */
+/* Use flex wrapping on small screens with a small gap between groups. We add
+   flex-lg-nowrap so desktop behavior (no wrapping) remains unchanged. */
+.btn-toolbar.flex-wrap {
+  gap: 0.5rem;
+}
+
+/* Small fixed-width right-aligned 'Quotes as of' display in Expected Moves
+   Give it enough min-width so it doesn't wrap in normal desktop layouts, but
+   allow wrapping on small devices for responsive behavior. */
+.expected-moves-quotes-as-of {
+  min-width: 260px;
+  white-space: nowrap;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+@media (max-width: 575.98px) {
+  .expected-moves-quotes-as-of {
+    min-width: 0;
+    white-space: normal;
+    text-align: left;
+  }
+}
+
+/* Narrow the blurb text so it doesn't wrap awkwardly; allow full width on small screens */
+.expected-moves-blurb {
+  max-width: 75%;
+}
+
+@media (max-width: 991.98px) {
+  .expected-moves-blurb {
+    max-width: 100%;
+  }
+  /* Stack header content on smaller screens so the quotes status moves underneath */
+  .expected-moves-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .expected-moves-quotes-as-of {
+    width: 100%;
+    text-align: left;
+    margin-top: 0;
+  }
+}  
+
+/* Fallback spacing for browsers that don't support gap on flex containers */
+.btn-toolbar.flex-wrap > .btn-group {
+  margin-top: 0.5rem;
+}
+
+/* Reduce excessive right margins and add vertical spacing when toolbars wrap
+   on narrow viewports (phones / small tablets). This keeps buttons from
+   forcing horizontal scrolling and ensures consistent vertical spacing between
+   stacked toolbar rows. */
+@media (max-width: 991.98px) {
+  .btn-toolbar.flex-wrap > .btn-group {
+    margin-right: 0.5rem !important;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Account History: move the top-right absolute controls into flow on smaller screens
+     so the dropdown and selects can wrap instead of overflowing offscreen. */
+  .account-history-page .position-relative > .account-history-controls {
+    position: static !important;
+    width: 100%;
+    /* Align to the left so controls sit flush to the card edge when stacked */
+    justify-content: flex-start;
+    /* keep minimal padding so controls align with select elements and chart edges */
+    padding: 0.25rem 0 !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Reduce min-widths for date dropdown and selects on narrow viewports (phones) */
+@media (max-width: 575.98px) {
+  .account-history-page .account-history-controls .dropdown-toggle {
+    min-width: 110px !important;
+  }
+  .account-history-page #account-history-chart-type-select {
+    min-width: 110px !important;
+  }
+  .account-history-page #account-history-broker-select,
+  .account-history-page #account-history-account-select {
+    min-width: 110px !important;
+  }
+
+  /* Prevent the date-range dropdown menu from overflowing the viewport on very
+     narrow screens (it was set to width: 300px inline in the template). */
+  .account-history-page .dropdown#account-history-date-range-dropdown .dropdown-menu {
+    width: auto !important;
+    max-width: calc(100% - 2rem) !important;
+    left: 0 !important;
+    right: auto !important;
+  }
+
+  /* Normalize button heights/padding so all buttons look consistent on phones */
+  .account-history-page .btn, .account-history-page .form-select {
+    font-size: 0.85rem !important;
+    padding: 0.375rem 0.6rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  .account-history-page .btn-group .btn {
+    flex: 0 0 auto !important;
+  }
+}
+
+/* Bookmark bar responsive layout: on smaller screens, move the
+   bookmark management buttons (add/manage/reset) onto their own
+   line and align them to the left, without changing desktop mode. */
+@media (max-width: 991.98px) {
+  .bookmark-toolbar-controls {
+    flex: 0 0 100% !important; /* force a new row within the flex toolbar */
+    margin-left: 0 !important; /* remove ms-auto effect on mobile */
+    justify-content: flex-start !important; /* left-align buttons */
+  }
+}
+
+/* ========================================
+   Chat Page Styles
+   ======================================== */
+
+/* Chat layout - full height */
+.container-fluid.h-100 {
+  max-width: 100%;
+  padding: 0;
+  height: 100vh;
+}
+
+.container-fluid.h-100 > .row {
+  height: calc(100vh - 56px); /* Account for navbar height */
+  margin: 0;
+}
+
+/* Sidebar */
+.chat-sidebar {
+  background-color: #2d2d2d;
+  border-right: 1px solid #454545;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.chat-sidebar.collapsed {
+  width: 60px !important;
+  min-width: 60px !important;
+  max-width: 60px !important;
+}
+
+.chat-sidebar.expanded {
+  width: 16.666667% !important; /* col-md-2 equivalent */
+  min-width: 200px;
+}
+
+@media (max-width: 767px) {
+  .chat-sidebar.expanded {
+    width: 250px !important;
+  }
+}
+
+.chat-sidebar-collapsed {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.35rem;
+  width: 100%;
+}
+
+.chat-sidebar.collapsed .chat-sidebar-collapsed {
+  display: flex;
+}
+
+.chat-sidebar.collapsed .chat-sidebar-expanded {
+  display: none;
+}
+
+.chat-sidebar-expanded {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.chat-sidebar.expanded .chat-sidebar-collapsed {
+  display: none;
+}
+
+.chat-sidebar.expanded .chat-sidebar-expanded {
+  display: flex;
+}
+
+.chat-sidebar-collapsed .btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-sidebar-header {
+  padding: 0.35rem 0.4rem; /* tighter padding for less vertical space */
+  border-bottom: 1px solid #454545;
+  background-color: #242424;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left-align title and button row so they line up with search */
+  gap: 0.2rem; /* reduced vertical spacing between elements */
+}
+
+.chat-header-button-row {
+  /* Make the button row left-aligned and aligned with the search input */
+  padding-left: 0; /* remove extra left padding so it lines up farther left */
+  width: 100%;
+}
+
+.chat-header-button-row .btn {
+  /* Use intrinsic width so buttons don't stretch and clip in narrow sidebars */
+  flex: 0 0 auto;
+  /* Make buttons slightly smaller to avoid clipping */
+  padding: 0.125rem 0.5rem;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px; /* ensure a reasonable tappable size */
+}
+
+/* Make sure the icon and text align nicely */
+.chat-header-button-row .btn i {
+  line-height: 1;
+}
+
+/* Always hide desktop delete button on small screens; show mobile '+' instead */
+@media (max-width: 767px) {
+  #deleteSessionBtn { display: none !important; }
+}
+
+
+.chat-sidebar-header h5 {
+  color: #e8e8e8;
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+.chat-sidebar-search {
+  border-bottom: 1px solid #454545;
+}
+
+.chat-session-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.chat-session-item {
+  padding: 0.5rem 0.65rem;
+  cursor: pointer;
+  border-bottom: 1px solid #3a3a3a;
+  transition: background-color 0.2s;
+}
+
+.chat-session-item:hover {
+  background-color: #353535;
+}
+
+.chat-session-item.active {
+  background-color: #3a3a3a;
+  border-left: 3px solid #00c853;
+}
+
+.chat-session-title {
+  color: #e8e8e8;
+  font-weight: 500;
+  font-size: 0.8rem;
+  margin-bottom: 0.15rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-session-date {
+  color: #9ca3af;
+  font-size: 0.7rem;
+}
+
+/* Main chat area */
+.chat-main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1a1a1a;
+  flex: 1;
+  transition: width 0.3s ease;
+}
+
+.chat-streaming-status {
+  padding: 0.5rem 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-style: italic;
+  border-top: 1px solid rgba(108, 117, 125, 0.2);
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat-stop-btn {
+  display: none;
+}
+
+.chat-streaming-content {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  opacity: 0.75;
+  max-height: 300px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+#streamingMessage {
+  min-width: 60%;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-title-header {
+  padding: 0.5rem 0 0.25rem 0;
+  margin-bottom: 0.75rem;
+  margin-left: 1rem;
+}
+
+.chat-header {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #454545;
+  background-color: #242424;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-header h5 {
+  color: #e8e8e8;
+  font-size: 0.95rem;
+  margin-bottom: 0.15rem !important;
+}
+
+/* Messages area */
+.chat-messages {
+  flex: 1;
+  min-height: 0; /* Important for flex child scrolling */
+  max-height: calc(100vh - 250px); /* Limit height: viewport minus header, input, and margins */
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chat-message {
+  display: flex;
+  flex-direction: column;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.chat-message-user {
+  max-width: 50%;
+  align-self: flex-end;
+}
+
+.chat-message-assistant {
+  max-width: 98%;
+  align-self: flex-start;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.chat-message-content {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  word-wrap: break-word;
+  line-height: 1.5;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.chat-message-user .chat-message-content {
+  background-color: #0d6efd;
+  color: #ffffff;
+}
+
+.chat-message-assistant .chat-message-content {
+  background-color: #2d2d2d;
+  border: 1px solid #454545;
+  color: #e8e8e8;
+}
+
+/* Markdown styling within assistant messages */
+.chat-message-assistant .chat-message-content h1,
+.chat-message-assistant .chat-message-content h2,
+.chat-message-assistant .chat-message-content h3 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #e8e8e8;
+}
+
+.chat-message-assistant .chat-message-content p {
+  margin-bottom: 0.5rem;
+}
+
+.chat-message-assistant .chat-message-content code {
+  background-color: #1a1a1a;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.chat-message-assistant .chat-message-content pre {
+  background-color: #1a1a1a;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  margin: 0.5rem 0;
+}
+
+.chat-message-assistant .chat-message-content pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.chat-message-assistant .chat-message-content ul,
+.chat-message-assistant .chat-message-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.chat-message-time {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+  padding: 0 0.25rem;
+}
+
+.chat-scroll-to-prompt {
+  margin-left: 0.5rem;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.chat-scroll-to-prompt:hover {
+  color: #ffffff;
+}
+
+.chat-copy-response {
+  margin-left: 0.5rem;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: color 0.2s;
+}
+
+.chat-copy-response:hover {
+  color: #ffffff;
+}
+
+.chat-message-user .chat-message-time {
+  text-align: right;
+}
+
+/* Input area */
+.chat-input-container {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #454545;
+  background-color: #242424;
+}
+
+.chat-input-container .input-group {
+  transition: box-shadow 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  border-radius: 0.375rem;
+  border: 1px solid #6c757d;
+  overflow: hidden;
+  background-color: #1f1f1f;
+}
+
+.chat-input-container textarea {
+  resize: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border: none;
+  background-color: transparent;
+}
+
+.chat-input-container textarea:focus {
+  box-shadow: none;
+  outline: 0;
+}
+
+.chat-input-container .input-group:focus-within {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 1px #ffffff;
+  border-radius: 0.375rem;
+}
+
+.chat-input-container .btn-success {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.chat-input-container .btn-danger {
+  border-radius: 0;
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.chat-error {
+  color: var(--loss-color);
+  background-color: rgba(255, 77, 79, 0.1);
+  border: 1px solid var(--loss-color);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+}
+
+/* Scrollbar styling for chat areas */
+.chat-session-list::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-session-list::-webkit-scrollbar-track,
+.chat-messages::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.chat-session-list::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #454545;
+  border-radius: 4px;
+}
+
+.chat-session-list::-webkit-scrollbar-thumb:hover,
+.chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chat-sidebar {
+    display: none; /* Hide sidebar on mobile - can be enhanced with a toggle later */
+  }
+  
+  .chat-main {
+    width: 100%;
+  }
+  
+  .chat-message {
+    max-width: 90%;
+  }
+}

@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="210" viewBox="0 0 1250 210" role="img" aria-label="Sample place orders table screenshot">
+  <defs>
+    <style>
+      .bg{fill:#1f2327}
+      .header{fill:#2b3036}
+      .row{fill:#242a30}
+      .row-alt{fill:#262c33}
+      .text{fill:#f1f3f5;font-family:Arial, Helvetica, sans-serif;font-size:14px;font-weight:600}
+      .subtext{fill:#d7dbe0;font-family:Arial, Helvetica, sans-serif;font-size:13px;font-weight:500}
+      .btn{fill:#d63031}
+      .btnText{fill:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:12px;font-weight:700}
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1250" height="210" rx="8" />
+  <rect class="header" x="20" y="16" width="1210" height="32" rx="6" />
+  <text class="subtext" x="36" y="37">ACCOUNT</text>
+  <text class="subtext" x="130" y="37">BROKER ORDER ID</text>
+  <text class="subtext" x="290" y="37">SYMBOL</text>
+  <text class="subtext" x="375" y="37">ACTION</text>
+  <text class="subtext" x="455" y="37">ORDER PRICE</text>
+  <text class="subtext" x="575" y="37">CURRENT PRICE</text>
+  <text class="subtext" x="715" y="37">QUANTITY</text>
+  <text class="subtext" x="800" y="37">ORDER AMOUNT</text>
+  <text class="subtext" x="940" y="37">STATUS</text>
+  <text class="subtext" x="1010" y="37">LAST UPDATED</text>
+
+  <rect class="row" x="20" y="58" width="1210" height="38" rx="6" />
+  <rect class="row-alt" x="20" y="98" width="1210" height="38" rx="6" />
+  <rect class="row" x="20" y="138" width="1210" height="38" rx="6" />
+
+  <text class="text" x="36" y="81">Trading</text>
+  <text class="subtext" x="130" y="81">5017</text>
+  <text class="subtext" x="290" y="81">PALL</text>
+  <text class="subtext" x="375" y="81">SELL</text>
+  <text class="subtext" x="455" y="81">$203.95</text>
+  <text class="subtext" x="575" y="81">$176.77</text>
+  <text class="subtext" x="715" y="81">50</text>
+  <text class="subtext" x="800" y="81">$10,197.50</text>
+  <text class="subtext" x="940" y="81">OPEN</text>
+  <text class="subtext" x="1010" y="81">Jan 28, 2026</text>
+
+  <text class="text" x="36" y="121">Trading</text>
+  <text class="subtext" x="130" y="121">5016</text>
+  <text class="subtext" x="290" y="121">PPLT</text>
+  <text class="subtext" x="375" y="121">SELL</text>
+  <text class="subtext" x="455" y="121">$283.50</text>
+  <text class="subtext" x="575" y="121">$242.58</text>
+  <text class="subtext" x="715" y="121">71</text>
+  <text class="subtext" x="800" y="121">$20,128.50</text>
+  <text class="subtext" x="940" y="121">OPEN</text>
+  <text class="subtext" x="1010" y="121">Jan 28, 2026</text>
+
+  <text class="text" x="36" y="161">Trading</text>
+  <text class="subtext" x="130" y="161">5015</text>
+  <text class="subtext" x="290" y="161">REMX</text>
+  <text class="subtext" x="375" y="161">SELL</text>
+  <text class="subtext" x="455" y="161">$105.00</text>
+  <text class="subtext" x="575" y="161">$97.98</text>
+  <text class="subtext" x="715" y="161">191</text>
+  <text class="subtext" x="800" y="161">$20,055.00</text>
+  <text class="subtext" x="940" y="161">OPEN</text>
+  <text class="subtext" x="1010" y="161">Jan 28, 2026</text>
+
+  <rect class="btn" x="1180" y="65" width="30" height="24" rx="4" />
+  <rect class="btn" x="1180" y="105" width="30" height="24" rx="4" />
+  <rect class="btn" x="1180" y="145" width="30" height="24" rx="4" />
+</svg>

@@ -1,0 +1,4 @@
+google-adk
+# Add any other dependencies your agent needs
+certifi
+toolbox-core

@@ -1,0 +1,40 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-success border-bottom border-secondary">
+  <div class="container">
+    <a class="navbar-home-icon d-lg-none" href="/home" aria-label="Home">
+      <i class="fa-solid fa-house"></i>
+    </a>
+    <% if (locals.demoMode) { %>
+    <div class="d-flex align-items-center ms-auto me-2 d-lg-none">
+      <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">
+        <div class="fw-bold">Demo Mode</div>
+        <div class="small" style="font-weight: normal; font-size: 0.65rem;">Simulated</div>
+      </span>
+    </div>
+    <% } %>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav me-auto">
+        <a class="nav-link text-white d-flex align-items-center" href="/home">
+          <i class="fa-solid fa-house me-2" style="margin-bottom: 2px;" aria-hidden="true"></i> Home
+        </a>
+      </div>
+      <div class="navbar-nav ms-auto">
+        <% if (locals.demoMode) { %>
+        <div class="d-none d-lg-flex align-items-center me-3">
+          <span class="badge bg-warning text-dark">
+            <div class="fw-bold">Demo Mode</div>
+            <div class="small" style="font-weight: normal;">All results simulated</div>
+          </span>
+        </div>
+        <% } %>
+        <div class="nav-item">
+          <a class="nav-link text-white d-flex align-items-center" href="/logout">
+            <i class="fa-solid fa-right-from-bracket me-2" aria-hidden="true"></i> Sign Out
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

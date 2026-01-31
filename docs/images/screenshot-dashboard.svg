@@ -1,0 +1,6 @@
+<svg width="1200" height="675" viewBox="0 0 1200 675" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="675" fill="#f1f5f9"/>
+  <rect x="60" y="60" width="1080" height="555" rx="16" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="600" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#64748b">Screenshot Placeholder</text>
+  <text x="600" y="365" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#94a3b8">Lumos Dashboard</text>
+</svg>

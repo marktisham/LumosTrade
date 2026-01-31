@@ -1,0 +1,228 @@
+<section class="mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h4 mb-4"><%= title %></h2>
+
+      <!-- Zero State Message -->
+      <% if (typeof inZeroState !== 'undefined' && inZeroState) { %>
+        <% if (!anyBrokersAuthorized) { %>
+          <div class="alert alert-warning mb-4">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            <strong>Welcome to Lumos!</strong> Please authorize one or more brokers before proceeding. 
+          </div>
+        <% } else { %>
+          <div class="alert alert-info mb-4">
+            <i class="fa-solid fa-info-circle me-2"></i>
+            <strong>Brokers Authorized!</strong> Please run the broker import below to continue.
+          </div>
+        <% } %>
+      <% } %>
+
+      <!-- Status Messages -->
+      <% if (locals.statusMessage) { %>
+        <div class="alert alert-<%= statusType === 'success' ? 'success' : 'danger' %> d-flex align-items-center mb-4">
+          <i class="fa-solid fa-<%= statusType === 'success' ? 'check-circle' : 'exclamation-triangle' %> me-3 fs-4"></i>
+          <div>
+            <strong><%= statusType === 'success' ? 'Success!' : 'Error' %></strong>
+            <p class="mb-0 small"><%= statusMessage %></p>
+          </div>
+        </div>
+      <% } %>
+      
+      <% if (locals.secretManagerError) { %>
+        <div class="alert alert-danger d-flex align-items-start mb-4">
+          <i class="fa-solid fa-exclamation-triangle me-3 fs-4"></i>
+          <div>
+            <strong>Secret Manager Error</strong>
+            <p class="mb-0 small font-monospace"><%= secretManagerError %></p>
+            <div class="mt-2 small">
+              <strong>Common fixes:</strong>
+              <ul class="mb-0 mt-1">
+                <li>Verify secrets are uploaded: <code>./lumos secrets upload</code></li>
+                <li>Check service account has <code>roles/secretmanager.secretAccessor</code></li>
+                <li>For local dev: <code>gcloud auth application-default login</code></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- E*TRADE OAuth Section -->
+      <div class="border rounded p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h3 class="h5 mb-2">E*TRADE API</h3>
+            <p class="text-muted mb-3">Connect your E*TRADE account to import orders and account balances automatically.</p>
+          </div>
+          <div class="badge bg-<%= (!etrade.secretsValid || !etrade.isAuthorized || etrade.tokenExpired) ? 'secondary' : 'success' %>">
+            <%= (!etrade.secretsValid || !etrade.isAuthorized || etrade.tokenExpired) ? 'Not Authorized' : 'Authorized' %>
+          </div>
+        </div>
+
+        <% if (!etrade.secretsValid) { %>
+          <!-- Secrets Invalid Message -->
+          <div class="alert alert-danger mt-3">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            API Keys not found. Contact <a href="https://developer.etrade.com/home">etrade</a> to get API access, then update your keys in the Lumos secrets file.
+          </div>
+        <% } else { %>
+          <!-- Authorization/Re-authorization Button -->
+          <button id="etradeAuthButton" class="btn btn-success mt-2">
+            <i class="fa-solid fa-key me-2"></i>
+            <%= etrade.isAuthorized ? 'Re-authorize E*TRADE API' : 'Authorize E*TRADE API' %>
+          </button>
+          
+          <!-- Verification Code Form (initially hidden) -->
+          <div id="etradeVerificationForm" class="mt-3" style="display: none;">
+            <div class="alert alert-info">
+              <i class="fa-solid fa-info-circle me-2"></i>
+              <strong>A new tab has opened for E*TRADE authorization.</strong><br/>
+              Please log into E*TRADE, authorize this application, then copy the verification code and paste it in the field below:
+            </div>
+            <div class="input-group">
+              <input type="text" id="etradeVerificationCode" class="form-control" placeholder="Enter verification code" />
+              <button id="etradeSubmitCodeButton" class="btn btn-primary">
+                <i class="fa-solid fa-check me-2"></i>Submit Code
+              </button>
+            </div>
+          </div>
+          
+          <% if (!etrade.isAuthorized || etrade.tokenExpired) { %>
+            <div id="etradeErrorAlert" class="alert alert-danger mt-3">
+              <i class="fa-solid fa-exclamation-triangle me-2"></i>
+              Your E*TRADE access token is missing or expired. Please authorize to allow data importing.
+            </div>
+          <% } else { %>
+            <div class="alert alert-success mb-0 mt-3">
+              <i class="fa-solid fa-check-circle me-2"></i>
+              Your E*TRADE account is connected and ready to use.
+            </div>
+            <% if (etrade.timeRemaining) { %>
+              <div class="mt-2">
+                <% if (etrade.timeRemaining.days < 1) { %>
+                  <span class="fw-bold text-danger">
+                    <i class="fa-solid fa-hourglass-end me-1"></i>
+                    Less than 1 day remaining (<%= etrade.timeRemaining.hours %>h <%= etrade.timeRemaining.minutes %>m)
+                  </span>
+                <% } else { %>
+                  <span class="fw-bold text-success">
+                    <i class="fa-solid fa-hourglass-half me-1"></i>
+                    <%= etrade.timeRemaining.days %>d <%= etrade.timeRemaining.hours %>h <%= etrade.timeRemaining.minutes %>m remaining
+                  </span>
+                <% } %>
+              </div>
+            <% } %>
+            <p class="text-muted small mt-2 mb-0">
+              If you wish to re-authorize or update your E*TRADE connection, click the button above.
+            </p>
+          <% } %>
+        <% } %>
+      </div>
+
+      <!-- Schwab OAuth Section -->
+      <div class="border rounded p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h3 class="h5 mb-2">Charles Schwab API</h3>
+            <p class="text-muted mb-3">Connect your Schwab account to import orders and account balances automatically.</p>
+          </div>
+          <div class="badge bg-<%= (!schwab.secretsValid || !schwab.isAuthorized || schwab.tokenExpired) ? 'secondary' : 'success' %>">
+            <%= (!schwab.secretsValid || !schwab.isAuthorized || schwab.tokenExpired) ? 'Not Authorized' : 'Authorized' %>
+          </div>
+        </div>
+
+        <% if (!schwab.secretsValid) { %>
+          <!-- Secrets Invalid Message -->
+          <div class="alert alert-danger mt-3">
+            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+            API Keys not found. Contact <a href="https://developer.schwab.com/">Charles Schwab</a> to get API access, then update your keys in the Lumos secrets file.
+          </div>
+        <% } else { %>
+          <!-- Authorization/Re-authorization Button -->
+          <a href="<%= schwab.authUrl %>" class="btn btn-success mt-2">
+            <i class="fa-solid fa-key me-2"></i>
+            <%= schwab.isAuthorized ? 'Re-authorize Schwab API' : 'Authorize Schwab API' %>
+          </a>
+          <% if (!schwab.isAuthorized || schwab.tokenExpired) { %>
+            <div class="alert alert-danger mt-3">
+              <i class="fa-solid fa-exclamation-triangle me-2"></i>
+              Your Schwab access token is missing or expired. Please authorize to allow data importing.
+              <div class="mt-3">
+                <strong>Note:</strong> Make sure the following callback URLs are registered for your account on developer.schwab.com:
+                <ul class="mb-0 mt-2">
+                  <li><code><%= appBaseUrl %></code></li>
+                  <li><code><%= appBaseUrl %>/brokers</code></li>
+                </ul>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="alert alert-success mb-0 mt-3">
+              <i class="fa-solid fa-check-circle me-2"></i>
+              Your Schwab account is connected and ready to use.
+            </div>
+            <% if (schwab.timeRemaining) { %>
+              <div class="mt-2">
+                <% if (schwab.timeRemaining.days < 1) { %>
+                  <span class="fw-bold text-danger">
+                    <i class="fa-solid fa-hourglass-end me-1"></i>
+                    Less than 1 day remaining (<%= schwab.timeRemaining.hours %>h <%= schwab.timeRemaining.minutes %>m)
+                  </span>
+                <% } else { %>
+                  <span class="fw-bold text-success">
+                    <i class="fa-solid fa-hourglass-half me-1"></i>
+                    <%= schwab.timeRemaining.days %>d <%= schwab.timeRemaining.hours %>h <%= schwab.timeRemaining.minutes %>m remaining
+                  </span>
+                <% } %>
+              </div>
+            <% } %>
+            <p class="text-muted small mt-2 mb-0">
+              If you wish to re-authorize or update your Schwab connection, click the button above.
+            </p>
+          <% } %>
+        <% } %>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Import Broker Data Section (only show if brokers are authorized) -->
+<% if (anyBrokersAuthorized) { %>
+<section class="mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Import Broker Data</h2>
+      
+      <div class="alert alert-info mb-3">
+        <i class="fa-solid fa-info-circle me-2"></i>
+        <strong>About Import Broker Data:</strong> This will perform an exhaustive import of all account balances, transactions and orders from all authorized brokers. 
+        The first import may take over 5 minutes to complete. This operation can be re-run in the future (only importing new data).
+      </div>
+
+      <div id="resyncStatus"></div>
+
+      <div class="d-flex align-items-center gap-3">
+        <button id="fullResyncButton" class="btn btn-success">
+          <i class="fa-solid fa-sync-alt me-2"></i>Import broker data
+        </button>
+        
+        <div id="resyncSpinner" class="d-none">
+          <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Import in progress...</span>
+          </div>
+          <span class="ms-2 text-muted">Import in progress...</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<% } %>
+
+<script>
+  // Expose zero state flag to client-side JS so we can reload the page after import if needed
+  window.IN_ZERO_STATE = <%= typeof inZeroState !== 'undefined' && inZeroState ? 'true' : 'false' %>;
+  console.log('IN_ZERO_STATE=', window.IN_ZERO_STATE);
+</script>
+
+<script src="/brokersClient.js"></script>

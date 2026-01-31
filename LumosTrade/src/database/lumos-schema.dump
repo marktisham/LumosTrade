@@ -1,0 +1,410 @@
+-- MySQL dump 10.13  Distrib 8.0.27, for macos11 (arm64)
+--
+-- Host: 127.0.0.1    Database: lumos
+-- ------------------------------------------------------
+-- Server version	8.4.6-google
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
+SET @@SESSION.SQL_LOG_BIN= 0;
+
+--
+-- GTID state at the beginning of the backup 
+--
+
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '';
+
+--
+-- Table structure for table `AccountHistory`
+--
+
+DROP TABLE IF EXISTS `AccountHistory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `AccountHistory` (
+  `AccountHistoryID` int NOT NULL AUTO_INCREMENT,
+  `AccountID` int NOT NULL,
+  `RollupPeriod` int NOT NULL DEFAULT '1',
+  `PeriodEnd` date NOT NULL,
+  `Balance` decimal(13,4) DEFAULT NULL,
+  `BalanceUpdateTime` datetime DEFAULT NULL,
+  `BalanceChangeAmount` decimal(13,4) DEFAULT NULL,
+  `BalanceChangePct` decimal(8,4) DEFAULT NULL,
+  `TransferAmount` decimal(13,4) DEFAULT NULL,
+  `TransferDescription` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `InvestedAmount` decimal(13,4) DEFAULT NULL,
+  `NetGain` decimal(13,4) DEFAULT NULL,
+  `NetGainPct` decimal(8,4) DEFAULT NULL,
+  `Comment` varchar(4096) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `OrdersExecuted` int DEFAULT NULL,
+  PRIMARY KEY (`AccountHistoryID`),
+  UNIQUE KEY `AccountHistory_AccountID_RollupPeriod_PeriodEnd_idx` (`AccountID`,`RollupPeriod`,`PeriodEnd`) USING BTREE,
+  CONSTRAINT `AccountHistory_ibfk_1` FOREIGN KEY (`AccountID`) REFERENCES `Accounts` (`AccountID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Accounts`
+--
+
+DROP TABLE IF EXISTS `Accounts`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Accounts` (
+  `AccountID` int NOT NULL AUTO_INCREMENT,
+  `BrokerID` int NOT NULL,
+  `BrokerAccountID` int DEFAULT NULL,
+  `BrokerAccountKey` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `Name` varchar(255) NOT NULL,
+  `Description` varchar(1024) DEFAULT NULL,
+  `LatestBrokerTransactionID` bigint unsigned DEFAULT NULL,
+  `LatestBrokerTransactionDate` datetime DEFAULT NULL,
+  `Closed` bit(1) NOT NULL DEFAULT b'0',
+  `AllTimeHigh` decimal(13,4) DEFAULT NULL,
+  `AllTimeHighDate` date DEFAULT NULL,
+  `AllTimeHighRangeStart` datetime DEFAULT NULL,
+  `DrawdownFromATH` decimal(13,4) DEFAULT NULL,
+  `DrawdownPctFromATH` decimal(8,4) DEFAULT NULL,
+  PRIMARY KEY (`AccountID`),
+  UNIQUE KEY `idx_accounts_brokerid_accountid` (`BrokerID`,`BrokerAccountID`),
+  CONSTRAINT `Accounts_ibfk_1` FOREIGN KEY (`BrokerID`) REFERENCES `Brokers` (`BrokerID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Brokers`
+--
+
+DROP TABLE IF EXISTS `Brokers`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Brokers` (
+  `BrokerID` int NOT NULL AUTO_INCREMENT,
+  `Name` varchar(255) NOT NULL,
+  PRIMARY KEY (`BrokerID`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ExpectedMoveSymbols`
+--
+
+DROP TABLE IF EXISTS `ExpectedMoveSymbols`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ExpectedMoveSymbols` (
+  `Symbol` varchar(20) NOT NULL,
+  PRIMARY KEY (`Symbol`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `ExpectedMoves`
+--
+
+DROP TABLE IF EXISTS `ExpectedMoves`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ExpectedMoves` (
+  `Symbol` varchar(20) NOT NULL,
+  `ExpiryType` varchar(20) NOT NULL,
+  `InitialValue` bit(1) NOT NULL,
+  `ExpiryDate` date NOT NULL,
+  `IV` decimal(13,4) NOT NULL,
+  `ClosingPrice` decimal(13,4) NOT NULL,
+  `Delta` decimal(13,4) NOT NULL,
+  `OneSigmaHigh` decimal(13,4) NOT NULL,
+  `OneSigmaLow` decimal(13,4) NOT NULL,
+  `TwoSigmaHigh` decimal(13,4) NOT NULL,
+  `TwoSigmaLow` decimal(13,4) NOT NULL,
+  `LastUpdated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`Symbol`,`ExpiryType`,`InitialValue`),
+  CONSTRAINT `ExpectedMoves_ibfk_1` FOREIGN KEY (`Symbol`) REFERENCES `ExpectedMoveSymbols` (`Symbol`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Instruments`
+--
+
+DROP TABLE IF EXISTS `Instruments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Instruments` (
+  `Symbol` varchar(20) NOT NULL,
+  `Cusip` varchar(40) DEFAULT NULL,
+  `Description` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  KEY `Instruments_Description_idx` (`Description`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Milestones`
+--
+
+DROP TABLE IF EXISTS `Milestones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Milestones` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `AccountID` int DEFAULT NULL,
+  `DayStart` date NOT NULL,
+  `DayEnd` date DEFAULT NULL,
+  `Name` varchar(255) NOT NULL,
+  PRIMARY KEY (`ID`),
+  KEY `AccountID` (`AccountID`),
+  CONSTRAINT `Milestones_ibfk_1` FOREIGN KEY (`AccountID`) REFERENCES `Accounts` (`AccountID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Orders`
+--
+
+DROP TABLE IF EXISTS `Orders`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Orders` (
+  `OrderID` int unsigned NOT NULL AUTO_INCREMENT,
+  `AccountID` int NOT NULL,
+  `BrokerOrderID` bigint unsigned DEFAULT NULL,
+  `BrokerOrderStep` int unsigned DEFAULT NULL,
+  `TradeID` int DEFAULT NULL,
+  `Symbol` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `Action` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `Quantity` decimal(13,4) NOT NULL,
+  `Price` decimal(13,4) NOT NULL,
+  `Fees` decimal(13,4) NOT NULL,
+  `OrderAmount` decimal(13,4) NOT NULL,
+  `ExecutedTime` datetime NOT NULL,
+  `IncompleteTrade` bit(1) NOT NULL DEFAULT b'0',
+  `ManuallyAdjusted` bit(1) NOT NULL DEFAULT b'0',
+  `AdjustedComment` varchar(1024) DEFAULT NULL,
+  `BrokerTransactionID` bigint unsigned DEFAULT NULL,
+  PRIMARY KEY (`OrderID`),
+  UNIQUE KEY `idx_orders_account_orderid` (`AccountID`,`BrokerOrderID`,`BrokerOrderStep`) USING BTREE,
+  UNIQUE KEY `BrokerTransactionID` (`BrokerTransactionID`) USING BTREE,
+  KEY `Orders_Symbol_idx` (`Symbol`) USING BTREE,
+  KEY `TradeID` (`TradeID`),
+  CONSTRAINT `Orders_ibfk_2` FOREIGN KEY (`AccountID`) REFERENCES `Accounts` (`AccountID`) ON UPDATE CASCADE,
+  CONSTRAINT `Orders_ibfk_3` FOREIGN KEY (`TradeID`) REFERENCES `Trades` (`TradeID`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `PlaceOrder`
+--
+
+DROP TABLE IF EXISTS `PlaceOrder`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `PlaceOrder` (
+  `PlaceOrderID` int NOT NULL AUTO_INCREMENT,
+  `AccountID` int NOT NULL,
+  `BrokerOrderID` int unsigned DEFAULT NULL,
+  `Symbol` varchar(20) NOT NULL,
+  `Action` varchar(40) NOT NULL,
+  `Price` decimal(13,4) NOT NULL,
+  `Quantity` decimal(13,4) NOT NULL,
+  `OrderAmount` decimal(13,4) NOT NULL,
+  `OrderStatus` varchar(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `LastUpdated` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`PlaceOrderID`),
+  KEY `AccountID` (`AccountID`),
+  CONSTRAINT `PlaceOrder_ibfk_1` FOREIGN KEY (`AccountID`) REFERENCES `Accounts` (`AccountID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Quotes`
+--
+
+DROP TABLE IF EXISTS `Quotes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Quotes` (
+  `QuoteID` int NOT NULL AUTO_INCREMENT,
+  `AccountID` int NOT NULL,
+  `Symbol` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `Price` decimal(13,4) NOT NULL,
+  `LastUpdated` datetime NOT NULL,
+  PRIMARY KEY (`QuoteID`),
+  UNIQUE KEY `Quotes_AccountID_Symbol_idx` (`AccountID`,`Symbol`) USING BTREE,
+  CONSTRAINT `Quotes_ibfk_1` FOREIGN KEY (`AccountID`) REFERENCES `Accounts` (`AccountID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `SymbolGroups`
+--
+
+DROP TABLE IF EXISTS `SymbolGroups`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `SymbolGroups` (
+  `ID` int NOT NULL AUTO_INCREMENT,
+  `Symbols` varchar(1024) NOT NULL,
+  `Name` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `RollupGroup` bit(1) NOT NULL DEFAULT b'0',
+  `LastUpdated` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`ID`),
+  UNIQUE KEY `SymbolGroups_Name_idx` (`Name`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `TradeHistory`
+--
+
+DROP TABLE IF EXISTS `TradeHistory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `TradeHistory` (
+  `TradeHistoryID` int NOT NULL AUTO_INCREMENT,
+  `AccountID` int NOT NULL,
+  `TradeID` int NOT NULL,
+  `RollupPeriod` int NOT NULL,
+  `PeriodEnd` date NOT NULL,
+  `PeriodGain` decimal(13,4) DEFAULT NULL,
+  `PeriodGainPct` decimal(8,4) DEFAULT NULL,
+  `TotalGain` decimal(13,4) DEFAULT NULL,
+  `TotalGainPct` decimal(8,4) DEFAULT NULL,
+  `CurrentCost` decimal(13,4) DEFAULT NULL,
+  `CurrentValue` decimal(13,4) DEFAULT NULL,
+  `CurrentPriceAtPeriodEnd` decimal(13,4) DEFAULT NULL,
+  `BreakevenPriceAtPeriodEnd` decimal(13,4) DEFAULT NULL,
+  `OpenQuantityAtPeriodEnd` decimal(13,4) DEFAULT NULL,
+  `RealizedGainAtPeriodEnd` decimal(13,4) DEFAULT NULL,
+  `UnrealizedGainAtPeriodEnd` decimal(13,4) DEFAULT NULL,
+  PRIMARY KEY (`TradeHistoryID`),
+  UNIQUE KEY `TradeHistory_AccountID_TradeID_RollupPeriod_PeriodEnd_idx` (`AccountID`,`TradeID`,`RollupPeriod`,`PeriodEnd`) USING BTREE,
+  KEY `TradeID` (`TradeID`),
+  CONSTRAINT `TradeHistory_ibfk_3` FOREIGN KEY (`AccountID`) REFERENCES `Accounts` (`AccountID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `TradeHistory_ibfk_4` FOREIGN KEY (`TradeID`) REFERENCES `Trades` (`TradeID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `Trades`
+--
+
+DROP TABLE IF EXISTS `Trades`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Trades` (
+  `TradeID` int NOT NULL AUTO_INCREMENT,
+  `AccountID` int NOT NULL,
+  `Symbol` varchar(20) NOT NULL,
+  `LongTrade` bit(1) NOT NULL,
+  `WinningTrade` bit(1) DEFAULT NULL,
+  `OpenDate` datetime NOT NULL,
+  `CloseDate` datetime DEFAULT NULL,
+  `DurationMS` bigint DEFAULT NULL,
+  `Closed` bit(1) NOT NULL DEFAULT b'0',
+  `OpenQuantity` decimal(13,4) NOT NULL DEFAULT '0.0000',
+  `BreakEvenPrice` decimal(13,4) NOT NULL,
+  `CurrentPrice` decimal(13,4) DEFAULT NULL,
+  `AvgEntryPrice` decimal(13,4) DEFAULT NULL,
+  `AvgExitPrice` decimal(13,4) DEFAULT NULL,
+  `TotalGain` decimal(13,4) DEFAULT NULL,
+  `TotalGainPct` decimal(8,4) DEFAULT NULL,
+  `CurrentCost` decimal(13,4) DEFAULT NULL,
+  `CurrentValue` decimal(13,4) DEFAULT NULL,
+  `LargestRisk` decimal(13,4) NOT NULL,
+  `RealizedGain` decimal(13,4) DEFAULT NULL,
+  `UnrealizedGain` decimal(13,4) DEFAULT NULL,
+  `TotalFees` decimal(13,4) NOT NULL,
+  `TotalOrderCount` int NOT NULL,
+  `ManuallyAdjusted` bit(1) NOT NULL DEFAULT b'0',
+  PRIMARY KEY (`TradeID`),
+  KEY `AccountID` (`AccountID`),
+  KEY `Trades_Closed_idx` (`Closed`) USING BTREE,
+  KEY `Trades_Symbol_idx` (`Symbol`) USING BTREE,
+  CONSTRAINT `Trades_ibfk_1` FOREIGN KEY (`AccountID`) REFERENCES `Accounts` (`AccountID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping routines for database 'lumos'
+--
+/*!50003 DROP PROCEDURE IF EXISTS `ResetForFullImport` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`lumosuser`@`%` PROCEDURE `ResetForFullImport`()
+BEGIN
+-- ** USE WITH CAUTION ***
+-- Reset state to allow for a full re-import of all orders and trades
+-- ** USE WITH CAUTION ***
+
+delete from TradeHistory;
+delete from Trades;
+delete from Orders;
+delete from Quotes;
+
+update Accounts set LatestBrokerTransactionID=null,LatestBrokerTransactionDate=null;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `ResetForTradeReprocess` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`lumosuser`@`%` PROCEDURE `ResetForTradeReprocess`()
+BEGIN
+-- ** USE WITH CAUTION ***
+-- Reset state to allow for fresh trade re-import. Does not re-import orders though.
+-- ** USE WITH CAUTION ***
+
+delete from TradeHistory;
+delete from Trades;
+delete from Quotes;
+
+
+delete from Orders where ManuallyAdjusted=true;
+update Orders set IncompleteTrade=false;
+update Accounts set LatestBrokerTransactionDate=null,LatestBrokerTransactionID=null;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2026-01-20 19:45:01

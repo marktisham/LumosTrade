@@ -1,0 +1,89 @@
+<section class="mt-4 account-history-page">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h2 class="h4 mb-0" id="account-history-title" style="cursor: pointer; user-select: none;" title="Track the value of your accounts over time."><%= title %></h2>
+          <p class="text-muted small mb-0">Track the value of your accounts over time.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div id="account-history-balances-as-of" class="small text-muted fst-italic"></div>
+        </div>
+      </div>
+
+      <div class="position-relative mb-3">
+        <div class="position-absolute top-0 end-0 d-flex align-items-center gap-2 p-2 flex-wrap flex-lg-nowrap account-history-controls" style="z-index: 10;">
+          <div class="dropdown" id="account-history-date-range-dropdown">
+            <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center justify-content-between shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 180px;">
+              <span class="text-truncate me-2" id="account-history-date-range-label" style="color: #e8e8e8;">Year to Date</span>
+            </button>
+            <div class="dropdown-menu p-0 shadow-sm" style="width: 300px; max-height: 400px; overflow-y: auto;">
+              <div class="p-2 border-bottom sticky-top" style="background-color: #1f1f1f;">
+                <input type="text" class="form-control form-control-sm" placeholder="Search..." id="account-history-date-range-search" style="background-color: #2d2d2d; border-color: #454545; color: #e8e8e8;">
+              </div>
+              <div id="account-history-date-range-list">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+          <select id="account-history-chart-type-select" class="form-select form-select-sm shadow-sm" style="width: auto; min-width: 180px;">
+            <option value="balance" selected>Balance History</option>
+            <option value="gain">Gain History</option>
+          </select>
+        </div>
+        <div id="account-history-chart-container" style="height: 400px;"></div>
+      </div>
+
+      <div id="account-history-bookmark-root" class="mb-2"></div>
+
+      <div class="btn-toolbar mb-3 flex-wrap flex-lg-nowrap gap-2 align-items-center" role="toolbar" aria-label="Account history toolbar">
+        <div class="d-flex align-items-center gap-2">
+              <select id="account-history-broker-select" class="form-select form-select-sm me-2" style="width: auto; min-width: 160px;">
+                <option value="">All Brokers</option>
+              </select>
+              <select id="account-history-account-select" class="form-select form-select-sm" style="width: auto; min-width: 160px;">
+              <option value="">All Accounts</option>
+              <% accounts.forEach(function(account) { %>
+              <option value="<%= account.AccountID %>" data-broker="<%= account.BrokerID %>"><%= account.Name %></option>
+              <% }); %>
+            </select>
+            <div id="account-history-rollup-group" class="btn-group" role="group">
+              <button id="account-history-rollup-daily-btn" type="button" class="btn btn-sm btn-outline-secondary">Daily</button>
+              <button id="account-history-rollup-weekly-btn" type="button" class="btn btn-sm btn-outline-secondary">Weekly</button>
+              <button id="account-history-rollup-monthly-btn" type="button" class="btn btn-sm btn-outline-secondary">Monthly</button>
+            </div>
+            <div class="btn-group ms-2" role="group">
+              <button id="account-history-refresh-only-balances-btn" type="button" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i> Balances</button>
+              <button id="account-history-refresh-balances-btn" type="button" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrow-rotate-right" aria-hidden="true"></i> Orders</button>
+            </div>
+        </div>
+        <div class="btn-group ms-auto mt-2 mt-lg-0" role="group">
+              <button type="button" id="account-history-nav-accounts-btn" class="btn btn-sm btn-outline-secondary" title="View current balances of your accounts.">Accounts</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary active" disabled title="Track the value of your accounts over time.">Performance</button>
+              <button type="button" id="account-history-nav-trades-btn" class="btn btn-sm btn-outline-secondary" title="View the current status of your open trades.">Trades</button>
+              <button type="button" id="account-history-nav-performance-btn" class="btn btn-sm btn-outline-secondary" title="View the profit and loss of your trades over time.">History</button>
+              <button type="button" id="account-history-nav-orders-btn" class="btn btn-sm btn-outline-secondary" title="View historical orders from the broker.">Orders</button>
+        </div>
+      </div>
+
+      <div data-account-history-table-root class="table-responsive"></div>
+    </div>
+  </div>
+</section>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script>
+  window.lumos = window.lumos || {};
+  window.lumos.milestones = <%- JSON.stringify(milestones) %>;
+  window.lumosAccountsBrokers = <%- JSON.stringify(brokers || []) %>;
+</script>
+<script src="/common/bookmarkBar.js"></script>
+<script src="/common/dateRangeDropdown.js"></script>
+<script src="/common/errorUtils.js"></script>
+<script src="/accountHistoryClient.js" defer></script>
+
+<style>
+  #account-history-title:hover {
+    text-decoration: underline;
+  }
+</style>

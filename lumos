@@ -1,0 +1,691 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Lumos Environment Launcher
+# This script manages environment configuration and runs environment-aware utility actions.
+# It sources environment variables from config/<environment>.expanded.env and invokes scripts in shell/.
+# Do not run scripts in shell/ directly; use ./lumos <action> [target] instead.
+#
+# Usage:
+#   ./lumos                                Run with interactive environment selection (remembered per terminal)
+#   ./lumos <action> [target]              Run an action in the current environment
+#   ./lumos <environment>                  Switch to an environment (shortcut for 'env set')
+#   ./lumos env set <environment>          Set environment for this terminal
+#   ./lumos env list                       List all available environments
+#   ./lumos env validate                   Validate current environment configuration
+#   ./lumos env delete                     Delete an environment
+#
+# Examples:
+#   ./lumos                                Select environment interactively
+#   ./lumos development                    Switch to development environment (shortcut)
+#   ./lumos env set development            Switch to development environment
+#   ./lumos deploy all                     Deploy all services (uses remembered environment)
+#   ./lumos auth                           Authenticate with GCP
+#
+# Environment selection is remembered per terminal window using a temporary file.
+# Different terminal windows can use different environments simultaneously.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_DIR="$SCRIPT_DIR/config"
+
+# Get the parent shell's PID to create a terminal-specific cache file
+# This allows each terminal to remember its own environment selection
+SHELL_PID="${PPID:-$$}"
+ENV_CACHE_FILE="/tmp/lumos-env-$SHELL_PID"
+
+# Function to list available environments
+list_environments() {
+  local envs=()
+  for file in "$CONFIG_DIR"/*.env; do
+    if [ -f "$file" ]; then
+      local basename=$(basename "$file" .env)
+      # Exclude template and expanded files
+      if [[ "$basename" != "template" && "$basename" != *.expanded ]]; then
+        envs+=("$basename")
+      fi
+    fi
+  done
+  echo "${envs[@]}"
+}
+
+# Function to prompt user to select or create environment
+select_environment() {
+  local envs=($(list_environments))
+  local env_count=${#envs[@]:-0}
+  
+  echo "==============================================="
+  echo "Lumos Environment Selection"
+  echo "==============================================="
+  echo ""
+  
+  if [ $env_count -eq 0 ]; then
+    echo "No environments found. Let's create one!"
+    echo ""
+    LUMOS_ENVIRONMENT=""
+    create_new_environment
+    return
+  fi
+  
+  echo "Available environments:"
+  for i in "${!envs[@]}"; do
+    echo "  $((i+1)). ${envs[$i]}"
+  done
+  echo "  $((env_count+1)). Create new environment"
+  echo ""
+  
+  # Determine default selection
+  local default_selection=""
+  local has_development=false
+  local has_production=false
+  
+  for env in "${envs[@]}"; do
+    if [ "$env" = "development" ]; then
+      has_development=true
+    elif [ "$env" = "production" ]; then
+      has_production=true
+    fi
+  done
+  
+  if [ "$has_development" = false ]; then
+    default_selection="development"
+  elif [ "$has_production" = false ]; then
+    default_selection="production"
+  fi
+  
+  # Prompt for selection
+  if [ -n "$default_selection" ]; then
+    read -p "Select environment (1-$((env_count+1))) or enter name [default: $default_selection]: " selection
+  else
+    read -p "Select environment (1-$((env_count+1))) or enter name: " selection
+  fi
+  
+  # Handle default
+  if [ -z "$selection" ] && [ -n "$default_selection" ]; then
+    selection="$default_selection"
+  fi
+
+  # Normalize whitespace from user input
+  selection="$(echo "$selection" | tr -d '[:space:]')"
+  
+  # Check if selection is a number
+  if [[ "$selection" =~ ^[0-9]+$ ]]; then
+    if [ "$selection" -le "$env_count" ] && [ "$selection" -ge 1 ]; then
+      # User selected existing environment
+      local selected_env="${envs[$((selection-1))]}"
+      LUMOS_ENVIRONMENT="$selected_env"
+      
+      # Save selection to terminal-specific cache file
+      echo "$LUMOS_ENVIRONMENT" > "$ENV_CACHE_FILE"
+      
+      echo ""
+      echo "Selected environment: $LUMOS_ENVIRONMENT"
+      echo "✓ Environment will be remembered for this terminal window"
+      return
+    elif [ "$selection" -eq $((env_count+1)) ]; then
+      # User wants to create new
+      LUMOS_ENVIRONMENT=""
+      create_new_environment
+      return
+    else
+      echo "Invalid selection. Please try again."
+      exit 1
+    fi
+  else
+    # User entered a name directly
+    if [ -z "$selection" ]; then
+      echo "Environment name cannot be empty."
+      exit 1
+    fi
+    
+    # Check if environment exists
+    if [ -f "$CONFIG_DIR/$selection.env" ]; then
+      LUMOS_ENVIRONMENT="$selection"
+      
+      # Save selection to terminal-specific cache file
+      echo "$LUMOS_ENVIRONMENT" > "$ENV_CACHE_FILE"
+      
+      echo ""
+      echo "Selected environment: $LUMOS_ENVIRONMENT"
+      echo "✓ Environment will be remembered for this terminal window"
+      return
+    else
+      # Create new environment with this name
+      LUMOS_ENVIRONMENT="$selection"
+      create_new_environment
+      return
+    fi
+  fi
+}
+
+# Function to create a new environment
+create_new_environment() {
+  local env_name="$LUMOS_ENVIRONMENT"
+  
+  if [ -z "$env_name" ]; then
+    echo ""
+    read -p "Enter environment name (e.g., development, production, staging): " env_name
+    
+    if [ -z "$env_name" ]; then
+      echo "Environment name cannot be empty."
+      exit 1
+    fi
+    
+    export LUMOS_ENVIRONMENT="$env_name"
+  fi
+  
+  local env_file="$CONFIG_DIR/$env_name.env"
+  
+  # Check if it already exists
+  if [ -f "$env_file" ]; then
+    echo "Environment '$env_name' already exists at $env_file"
+    return
+  fi
+  
+  echo ""
+  echo "Creating new environment: $env_name"
+  echo "==============================================="
+  
+  # Copy template
+  cp "$CONFIG_DIR/template.env" "$env_file"
+  
+  # Update LUMOS_ENVIRONMENT in the file
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "s/LUMOS_ENVIRONMENT=YOUR_ENVIRONMENT_NAME_HERE/LUMOS_ENVIRONMENT=$env_name/" "$env_file"
+  else
+    sed -i "s/LUMOS_ENVIRONMENT=YOUR_ENVIRONMENT_NAME_HERE/LUMOS_ENVIRONMENT=$env_name/" "$env_file"
+  fi
+  
+  echo ""
+  echo "Now let's configure the required settings."
+  echo "You can press Enter to use the suggested value, or type your own."
+  echo ""
+  
+  # Fetch list of available GCP projects
+  echo "Fetching available GCP projects..."
+  local projects_json=$(gcloud projects list --format=json 2>/dev/null || echo "[]")
+  local projects=()
+  
+  if [ "$projects_json" != "[]" ] && [ -n "$projects_json" ]; then
+    # Parse project IDs from JSON
+    while IFS= read -r project_id; do
+      if [ -n "$project_id" ]; then
+        projects+=("$project_id")
+      fi
+    done < <(echo "$projects_json" | grep -o '"projectId": "[^"]*"' | cut -d'"' -f4)
+  fi
+  
+  local project_id=""
+  
+  if [ ${#projects[@]} -gt 0 ]; then
+    echo ""
+    echo "Available GCP projects:"
+    for i in "${!projects[@]}"; do
+      echo "  $((i+1)). ${projects[$i]}"
+    done
+    echo "  $((${#projects[@]}+1)). Create new project"
+    echo ""
+    
+    local default_project=$(gcloud config get-value project 2>/dev/null || echo "")
+    local default_selection=""
+    
+    # Find default project in list
+    if [ -n "$default_project" ]; then
+      for i in "${!projects[@]}"; do
+        if [ "${projects[$i]}" = "$default_project" ]; then
+          default_selection=$((i+1))
+          break
+        fi
+      done
+      
+      if [ -n "$default_selection" ]; then
+        read -p "Select project (1-$((${#projects[@]}+1))) [$default_selection]: " selection
+        selection=${selection:-$default_selection}
+      else
+        read -p "Select project (1-$((${#projects[@]}+1))): " selection
+      fi
+    else
+      read -p "Select project (1-$((${#projects[@]}+1))): " selection
+    fi
+    
+    # Check if selection is a number
+    if [[ "$selection" =~ ^[0-9]+$ ]]; then
+      if [ "$selection" -le "${#projects[@]}" ] && [ "$selection" -ge 1 ]; then
+        project_id="${projects[$((selection-1))]}"
+      elif [ "$selection" -eq $((${#projects[@]}+1)) ]; then
+        # User wants to create new project
+        echo ""
+        echo "To create a new GCP project:"
+        echo "  1. Visit: https://console.cloud.google.com/projectcreate"
+        echo "  2. Create your new project"
+        echo "  3. Note the Project ID (not the name)"
+        echo "  4. Return here and enter the Project ID below"
+        echo ""
+        read -p "GCP Project ID: " project_id
+      else
+        echo "Invalid selection. Please enter a valid number."
+        exit 1
+      fi
+    else
+      # User entered a custom project ID directly
+      project_id="$selection"
+    fi
+  else
+    # No projects found, fall back to prompt
+    local default_project=$(gcloud config get-value project 2>/dev/null || echo "")
+    if [ -n "$default_project" ]; then
+      read -p "GCP Project ID [$default_project]: " project_id
+      project_id=${project_id:-$default_project}
+    else
+      read -p "GCP Project ID: " project_id
+    fi
+  fi
+  
+  while [ -z "$project_id" ]; do
+    echo "Project ID is required."
+    read -p "GCP Project ID: " project_id
+  done
+  
+  # Update PROJECT_ID in file
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "s/PROJECT_ID=YOUR_PROJECT_ID_HERE/PROJECT_ID=$project_id/" "$env_file"
+  else
+    sed -i "s/PROJECT_ID=YOUR_PROJECT_ID_HERE/PROJECT_ID=$project_id/" "$env_file"
+  fi
+  
+  # Get project number
+  echo ""
+  echo "Fetching project number..."
+  local project_number=$(gcloud projects describe "$project_id" --format="value(projectNumber)" 2>/dev/null || echo "")
+  
+  if [ -n "$project_number" ]; then
+    echo "Found project number: $project_number"
+  else
+    read -p "GCP Project Number (could not auto-fetch): " project_number
+    while [ -z "$project_number" ]; do
+      echo "Project number is required."
+      read -p "GCP Project Number: " project_number
+    done
+  fi
+  
+  # Update PROJECT_NUMBER in file
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "s/PROJECT_NUMBER=YOUR_PROJECT_NUMBER_HERE/PROJECT_NUMBER=$project_number/" "$env_file"
+  else
+    sed -i "s/PROJECT_NUMBER=YOUR_PROJECT_NUMBER_HERE/PROJECT_NUMBER=$project_number/" "$env_file"
+  fi
+  
+  # Prompt for REGION
+  echo ""
+  read -p "GCP Region [us-east4]: " region
+  region=${region:-us-east4}
+  
+  # Update REGION in file
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "s/REGION=YOUR_REGION_HERE/REGION=$region/" "$env_file"
+  else
+    sed -i "s/REGION=YOUR_REGION_HERE/REGION=$region/" "$env_file"
+  fi
+  
+  echo ""
+  echo "==============================================="
+  echo "Environment '$env_name' created successfully!"
+  echo "==============================================="
+  
+  # Copy secrets template and strip out comment lines
+  local secrets_template="$CONFIG_DIR/secrets.template.json"
+  local secrets_file="$CONFIG_DIR/$env_name.secrets.json"
+  
+  if [ -f "$secrets_template" ]; then
+    # Read template, strip comment lines, and add environment-specific header
+    # Use sed to remove first line ({) and last line (}) from filtered content
+    {
+      echo "{"
+      echo "  \"_comment\": \"Secrets for environment: $env_name\","
+      echo "  \"_comment2\": \"Upload to Google Secret Manager with: ./lumos secrets upload\","
+      grep -v '"_comment' "$secrets_template" | sed '1d;$d'
+      echo "}"
+    } > "$secrets_file"
+    echo "✓ Secrets file created: $secrets_file"
+  fi
+  
+  # Generate expanded env file
+  echo "✓ Generating expanded environment file..."
+  bash "$SCRIPT_DIR/shell/_expand_env.sh"
+  
+  # Save selection to terminal-specific cache file
+  echo "$LUMOS_ENVIRONMENT" > "$ENV_CACHE_FILE"
+  
+  echo ""
+  echo "Next steps:"
+  echo "  1. Review and update configuration:"
+  echo "       $env_file"
+  echo "  2. Update secrets with actual values:"
+  echo "       $secrets_file"
+  echo "  3. Upload secrets to Google Secret Manager:"
+  echo "       ./lumos secrets upload"
+  echo ""
+  echo "✓ Environment '$env_name' is now active for this terminal window"
+  echo "You can now use: ./lumos <action> [target]"
+  echo ""
+}
+
+# Function to delete an environment
+delete_environment() {
+  local envs=($(list_environments))
+  local env_count=${#envs[@]}
+  
+  if [ $env_count -eq 0 ]; then
+    echo "No environments available to delete."
+    return
+  fi
+  
+  echo ""
+  echo "==============================================="
+  echo "Delete Environment"
+  echo "==============================================="
+  echo ""
+  echo "Available environments:"
+  for i in "${!envs[@]}"; do
+    echo "  $((i+1)). ${envs[$i]}"
+  done
+  echo ""
+  
+  read -p "Select environment to delete (1-$env_count, or Enter to cancel): " selection
+  
+  # Allow empty input to cancel
+  if [ -z "$selection" ]; then
+    echo "Cancelled."
+    return
+  fi
+  
+  # Check if selection is a valid number
+  if ! [[ "$selection" =~ ^[0-9]+$ ]] || [ "$selection" -lt 1 ] || [ "$selection" -gt "$env_count" ]; then
+    echo "Invalid selection."
+    exit 1
+  fi
+  
+  local env_to_delete="${envs[$((selection-1))]}"
+  
+  # Confirm deletion
+  echo ""
+  read -p "Are you sure you want to delete environment '$env_to_delete'? (y/N): " confirm
+  
+  if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    echo "Cancelled."
+    return
+  fi
+  
+  # Delete the files
+  local env_file="$CONFIG_DIR/$env_to_delete.env"
+  local expanded_file="$CONFIG_DIR/$env_to_delete.expanded.env"
+  local secrets_file="$CONFIG_DIR/$env_to_delete.secrets.json"
+  
+  local deleted_files=()
+  
+  if [ -f "$env_file" ]; then
+    rm "$env_file"
+    deleted_files+=("$env_to_delete.env")
+  fi
+  
+  if [ -f "$expanded_file" ]; then
+    rm "$expanded_file"
+    deleted_files+=("$env_to_delete.expanded.env")
+  fi
+  
+  if [ -f "$secrets_file" ]; then
+    rm "$secrets_file"
+    deleted_files+=("$env_to_delete.secrets.json")
+  fi
+  
+  # Clear cache if deleting current environment
+  if [ "${LUMOS_ENVIRONMENT:-}" = "$env_to_delete" ]; then
+    unset LUMOS_ENVIRONMENT
+    if [ -f "$ENV_CACHE_FILE" ]; then
+      rm "$ENV_CACHE_FILE"
+    fi
+    echo ""
+    echo "✓ Current environment cleared from this terminal."
+  fi
+  
+  echo ""
+  echo "✓ Environment '$env_to_delete' has been deleted."
+  if [ ${#deleted_files[@]} -gt 0 ]; then
+    echo "  Deleted files:"
+    for file in "${deleted_files[@]}"; do
+      echo "    - $file"
+    done
+  fi
+  echo ""
+  echo "⚠️  WARNING: This only deleted local configuration files."
+  echo "   Cloud resources (projects, databases, services, etc.) were NOT deleted."
+  echo "   You must manually clean up any GCP resources if needed."
+}
+
+# List of known actions (from _invoker.sh)
+KNOWN_ACTIONS=("auth" "build" "deploy" "env" "install" "run" "secrets" "service" "sql")
+
+# Check if first parameter is an environment name (not a known action)
+if [ -n "${1:-}" ]; then
+  is_known_action=false
+  for action in "${KNOWN_ACTIONS[@]}"; do
+    if [ "${1}" = "$action" ]; then
+      is_known_action=true
+      break
+    fi
+  done
+  
+  # If not a known action, check if it's an environment name
+  if [ "$is_known_action" = false ]; then
+    potential_env="${1}"
+    if [ -f "$CONFIG_DIR/$potential_env.env" ]; then
+      # This is an environment name - switch to it
+      LUMOS_ENVIRONMENT="$potential_env"
+      
+      # Save selection to terminal-specific cache file
+      echo "$LUMOS_ENVIRONMENT" > "$ENV_CACHE_FILE"
+      
+      echo "Environment set to: $LUMOS_ENVIRONMENT"
+      echo "✓ Environment will be remembered for this terminal window"
+      exit 0
+    else
+      # Not a known action and not a valid environment
+      echo "Error: Unknown command or environment: $potential_env"
+      echo ""
+      echo "Available environments: $(list_environments)"
+      echo ""
+      echo "Available commands: ${KNOWN_ACTIONS[*]}"
+      echo ""
+      echo "Run './lumos' for help"
+      exit 1
+    fi
+  fi
+fi
+
+# Handle env subcommands that don't need to pass through to invoker
+if [ "${1:-}" = "env" ]; then
+  case "${2:-}" in
+    set)
+      if [ -n "${3:-}" ]; then
+        # Environment name provided as argument
+        if [ -f "$CONFIG_DIR/$3.env" ]; then
+          LUMOS_ENVIRONMENT="$3"
+          
+          # Save selection to terminal-specific cache file
+          echo "$LUMOS_ENVIRONMENT" > "$ENV_CACHE_FILE"
+          
+          echo "Environment set to: $LUMOS_ENVIRONMENT"
+          echo "✓ Environment will be remembered for this terminal window"
+        else
+          echo "Error: Environment '$3' does not exist."
+          echo "Available environments: $(list_environments)"
+          echo ""
+          echo "To create a new environment, run: ./lumos env set"
+          exit 1
+        fi
+      else
+        # No environment name provided, prompt user
+        select_environment
+      fi
+      exit 0
+      ;;
+    list)
+      echo "Available environments:"
+      for env in $(list_environments); do
+        echo "  - $env"
+      done
+      exit 0
+      ;;
+    validate)
+      if [ -z "${LUMOS_ENVIRONMENT:-}" ]; then
+        # Check for cached environment
+        if [ -f "$ENV_CACHE_FILE" ]; then
+          LUMOS_ENVIRONMENT=$(cat "$ENV_CACHE_FILE")
+        else
+          echo "Error: LUMOS_ENVIRONMENT is not set."
+          echo "Run: ./lumos env set <environment>"
+          exit 1
+        fi
+      fi
+      
+      ENV_FILE="$CONFIG_DIR/${LUMOS_ENVIRONMENT}.expanded.env"
+      if [ ! -f "$ENV_FILE" ]; then
+        echo "Error: Expanded environment file not found: $ENV_FILE"
+        echo "Run: ./lumos to regenerate it"
+        exit 1
+      fi
+      
+      echo "Environment: $LUMOS_ENVIRONMENT"
+      echo "Config file: $CONFIG_DIR/${LUMOS_ENVIRONMENT}.env"
+      echo "Expanded file: $ENV_FILE"
+      echo ""
+      echo "Validating required variables..."
+      
+      # Source the env file to check variables
+      set -a
+      source "$ENV_FILE"
+      set +a
+      
+      errors=0
+      
+      # Check required variables
+      if [ -z "${PROJECT_ID:-}" ]; then
+        echo "  ✗ PROJECT_ID is not set"
+        errors=$((errors+1))
+      else
+        echo "  ✓ PROJECT_ID: $PROJECT_ID"
+      fi
+      
+      if [ -z "${PROJECT_NUMBER:-}" ]; then
+        echo "  ✗ PROJECT_NUMBER is not set"
+        errors=$((errors+1))
+      else
+        echo "  ✓ PROJECT_NUMBER: $PROJECT_NUMBER"
+      fi
+      
+      if [ -z "${REGION:-}" ]; then
+        echo "  ✗ REGION is not set"
+        errors=$((errors+1))
+      else
+        echo "  ✓ REGION: $REGION"
+      fi
+      
+      if [ $errors -eq 0 ]; then
+        echo ""
+        echo "✓ Environment configuration is valid!"
+      else
+        echo ""
+        echo "✗ Environment configuration has $errors error(s)."
+        echo "Please edit: $CONFIG_DIR/${LUMOS_ENVIRONMENT}.env"
+        exit 1
+      fi
+      
+      exit 0
+      ;;
+    delete)
+      delete_environment
+      exit 0
+      ;;
+    show|update)
+      # These commands are handled by _invoker.sh
+      # Don't exit here - fall through to load environment and call invoker
+      ;;
+    *)
+      echo "Unknown env subcommand: ${2:-}"
+      echo ""
+      echo "Usage:"
+      echo "  ./lumos env set [environment]    Set or create an environment"
+      echo "  ./lumos <environment>            Shortcut to switch environment (e.g., ./lumos development)"
+      echo "  ./lumos env list                 List all available environments"
+      echo "  ./lumos env validate             Validate current environment configuration"
+      echo "  ./lumos env show                 Display environment variables"
+      echo "  ./lumos env update               Regenerate expanded environment file"
+      echo "  ./lumos env delete               Delete an environment"
+      exit 1
+      ;;
+  esac
+fi
+
+# Check if LUMOS_ENVIRONMENT is set (from env var or cached file)
+if [ -z "${LUMOS_ENVIRONMENT:-}" ]; then
+  # Check for cached environment selection in this terminal
+  if [ -f "$ENV_CACHE_FILE" ]; then
+    LUMOS_ENVIRONMENT=$(cat "$ENV_CACHE_FILE")
+    echo "Using remembered environment: $LUMOS_ENVIRONMENT"
+    echo ""
+  else
+    # No environment set and no cache - prompt user to select
+    select_environment
+  fi
+fi
+
+# Validate environment exists
+ENV_FILE="$CONFIG_DIR/${LUMOS_ENVIRONMENT}.expanded.env"
+BASE_ENV_FILE="$CONFIG_DIR/${LUMOS_ENVIRONMENT}.env"
+
+if [ ! -f "$BASE_ENV_FILE" ]; then
+  echo "Environment '$LUMOS_ENVIRONMENT' no longer exists."
+  echo ""
+  
+  # Clear the cached environment
+  if [ -f "$ENV_CACHE_FILE" ]; then
+    rm "$ENV_CACHE_FILE"
+  fi
+  unset LUMOS_ENVIRONMENT
+  
+  # Prompt user to select a new environment
+  select_environment
+  
+  # Re-set paths with new environment
+  ENV_FILE="$CONFIG_DIR/${LUMOS_ENVIRONMENT}.expanded.env"
+  BASE_ENV_FILE="$CONFIG_DIR/${LUMOS_ENVIRONMENT}.env"
+fi
+
+# Generate expanded env file if it doesn't exist
+if [ ! -f "$ENV_FILE" ]; then
+  echo "Generating expanded environment file..."
+  bash "$SCRIPT_DIR/shell/_expand_env.sh"
+fi
+
+if [ ! -f "$ENV_FILE" ]; then
+  echo "Error: $ENV_FILE not found" >&2
+  exit 1
+fi
+
+# Export variables from expanded env file
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
+# Add computed variables
+export LUMOS_ROOT_DIR="$SCRIPT_DIR"
+export SECRETS_FILE="${LUMOS_ROOT_DIR}/config/${LUMOS_ENVIRONMENT}.secrets.json"
+
+# Display current environment
+echo "╔════════════════════════════════════════════════╗"
+echo "║  Environment: $LUMOS_ENVIRONMENT"
+echo "╚════════════════════════════════════════════════╝"
+echo ""
+
+# Call common invoker
+bash "$SCRIPT_DIR/shell/_invoker.sh" "$@"

@@ -1,0 +1,86 @@
+<section class="mt-4 accounts-page">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h2 class="h4 mb-0" id="accounts-title" style="cursor: pointer; user-select: none;" title="View current balances of your accounts."><%= title %></h2>
+          <p class="text-muted small mb-0">View current balances of your accounts.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div id="accounts-balances-as-of" class="small text-muted fst-italic"></div>
+        </div>
+      </div>
+      <div data-accounts-table-root class="table-responsive"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ATH Range Start Modal -->
+<div class="modal fade" id="athRangeStartModal" tabindex="-1" aria-labelledby="athRangeStartModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="athRangeStartModalLabel">
+          <i class="fa-solid fa-calendar-days me-2"></i> Set ATH Range Start
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="ath-modal-account-info" class="mb-3"></p>
+        <p id="ath-modal-current-range" class="mb-3 text-muted"></p>
+        <div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="ath-range-choice" id="ath-choice-clear" value="clear" checked>
+            <label class="form-check-label" for="ath-choice-clear">Clear Range Start (use all history)</label>
+          </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" name="ath-range-choice" id="ath-choice-date" value="date">
+            <label class="form-check-label" for="ath-choice-date">Select specific date</label>
+          </div>
+          <div class="mt-2">
+            <input type="date" id="ath-range-date-input" class="form-control" disabled />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="ath-modal-ok-btn">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal fade" id="accountsErrorModal" tabindex="-1" aria-labelledby="accountsErrorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="accountsErrorModalLabel">
+          <i class="fa-solid fa-circle-exclamation me-2"></i> Error
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="accounts-error-message">
+        An error occurred.
+      </div>
+      <div class="modal-footer bg-dark border-secondary">
+        <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<style>
+  #accounts-title:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  window.lumos = window.lumos || {};
+  window.lumosAccountsBrokers = <%- JSON.stringify(brokers || []) %>;
+</script>
+<script src="/common/bookmarkBar.js"></script>
+<script src="/common/errorUtils.js"></script>
+<script src="/accountsClient.js" defer></script>

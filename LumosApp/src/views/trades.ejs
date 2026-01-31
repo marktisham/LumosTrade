@@ -1,0 +1,40 @@
+<section class="mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h2 class="h4 mb-0" id="trades-title" style="cursor: pointer; user-select: none;" title="View the current status of your open trades."><%= title %></h2>
+          <p class="text-muted small mb-0">View the current status of your open trades.</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div id="trades-quotes-as-of" class="small text-muted fst-italic"></div>
+        </div>
+      </div>
+
+      <div data-trades-table-root class="table-responsive"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #trades-title:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script>
+  window.LUMOS_ACCOUNTS = <%- accountsJson %>;
+  window.LUMOS_SYMBOL_GROUPS = <%- symbolGroupsJson %>;
+  window.lumosAccountsBrokers = <%- JSON.stringify(brokers || []) %>;
+  window.lumos = window.lumos || {};
+  window.lumos.milestones = <%- JSON.stringify(milestones) %>;
+</script>
+<script src="/common/searchableDropdown.js"></script>
+<script src="/common/bookmarkBar.js"></script>
+<script src="/common/dateRangeDropdown.js"></script>
+<script src="/common/errorUtils.js"></script>
+<script src="/tradesClient.js" defer></script>
+
+

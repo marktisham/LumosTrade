@@ -1,0 +1,50 @@
+{
+  "// COMMENT": "This file contains static constant values used by LumosTrade.",
+  "// COMMENT2": "The NODE_ENV environment variable (development or production) will define which overrides are applied from the corresponding environment-specific JSON file.",
+  "environment": "default",
+  "brokers": {
+    "etrade": {
+      "oauth1": {
+        "getRequestToken": "https://api.etrade.com/oauth/request_token",
+        "authorize" : "https://us.etrade.com/e/t/etws/authorize",
+        "getAccessToken" : "https://api.etrade.com/oauth/access_token",
+        "DatastoreKey": "ETradeAccessToken"
+      },
+      "url": {
+        "getAccounts": "https://api.etrade.com/v1/accounts/list",
+        "getAccountBalance": "https://api.etrade.com/v1/accounts/{accountIdKey}/balance?instType=BROKERAGE&realTimeNAV=true",
+        "renewAccessToken": "https://api.etrade.com/oauth/renew_access_token",
+        "getOrders": "https://api.etrade.com/v1/accounts/{accountIdKey}/orders?securityType=EQ&count=100",
+        "getQuotes": "https://api.etrade.com/v1/market/quote/{symbols}?detailFlag=FUNDAMENTAL&overrideSymbolCount=true&skipMiniOptionsCheck=true",
+        "getQuotesDetaialed": "https://api.etrade.com/v1/market/quote/{symbols}?detailFlag=ALL&overrideSymbolCount=true&skipMiniOptionsCheck=true&requireEarningsDate=true",
+        "getTransactions": "https://api.etrade.com/v1/accounts/{accountIdKey}/transactions?count=50",
+        "getPositions": "https://api.etrade.com/v1/accounts/{accountIdKey}/portfolio?count=500&view=QUICK&marketSession=EXTENDED",
+        "getOptionsChain": "https://api.etrade.com/v1/market/optionchains?symbol={symbol}&noOfStrikes={strikes}&includeWeekly=true&chainType=PUT",
+        "getOptionsDates": "https://api.etrade.com/v1/market/optionexpiredate?symbol={symbol}",
+        "previewOrder": "https://api.etrade.com/v1/accounts/{accountIdKey}/orders/preview",
+        "placeOrder": "https://api.etrade.com/v1/accounts/{accountIdKey}/orders/place",
+        "cancelOrder": "https://api.etrade.com/v1/accounts/{accountIdKey}/orders/cancel"
+      }
+    },
+    "schwab": {
+      "oauth2":{
+        "AuthURL": "https://api.schwabapi.com/v1/oauth/authorize?client_id={appKey}&redirect_uri={redirectUri}",
+        "TokenURL": "https://api.schwabapi.com/v1/oauth/token",
+        "DatastoreKey": "SchwabAccessToken"
+      },
+      "url" : {
+        "getAccounts": "https://api.schwabapi.com/trader/v1/accounts/accountNumbers",
+        "getAccountBalance": "https://api.schwabapi.com/trader/v1/accounts/{accountIdKey}",
+        "getOrders": "https://api.schwabapi.com/trader/v1/accounts/{accountIdKey}/orders?status=FILLED",
+        "getTransactions": "https://api.schwabapi.com/trader/v1/accounts/{accountIdKey}/transactions?types=RECEIVE_AND_DELIVER,DIVIDEND_OR_INTEREST,ACH_RECEIPT,ACH_DISBURSEMENT,CASH_RECEIPT,CASH_DISBURSEMENT,ELECTRONIC_FUND,WIRE_OUT,WIRE_IN",
+        "getPositions": "https://api.schwabapi.com/trader/v1/accounts/{accountIdKey}?fields=positions",
+        "getQuotes": "https://api.schwabapi.com/marketdata/v1/quotes?symbols={symbols}&fields=quote&indicative=false",
+        "getQuotesDetaialed": "https://api.schwabapi.com/marketdata/v1/quotes?symbols={symbols}&fields=all&indicative=false"
+      }
+    }
+  },
+  "LumosTrade": {
+    "defaultMaxImportDays": 730,
+    "simulatorMaxImportDays": 365
+  }
+}

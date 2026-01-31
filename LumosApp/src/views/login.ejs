@@ -1,0 +1,23 @@
+
+
+<div class="row justify-content-center">
+  <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Lumos Trade Login</h2>
+        <% if (error) { %>
+          <div class="alert alert-danger" role="alert">
+            Incorrect password. Please try again.
+          </div>
+        <% } %>
+        <form method="POST" action="/login">
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required autofocus>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

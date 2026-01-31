@@ -1,0 +1,23 @@
+{
+  "name": "lumoscli",
+  "version": "1.0.0",
+  "bin": {
+    "lumoscli": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "lumostrade": "file:../LumosTrade"
+  },
+  "devDependencies": {
+    "@types/config": "^3.3.5",
+    "@types/cookie-parser": "^1.4.10",
+    "@types/ejs": "^3.1.5",
+    "@types/express": "^5.0.6",
+    "@types/express-ejs-layouts": "^2.5.4",
+    "@types/node": "^20.19.30",
+    "typescript": "^5.0.0"
+  }
+}

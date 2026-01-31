@@ -1,0 +1,114 @@
+<% const isDemo = typeof demoMode !== 'undefined' && demoMode; %>
+<% const demoEditsAllowed = typeof demoAllowEdits !== 'undefined' && demoAllowEdits; %>
+<% const editsEnabled = !isDemo || demoEditsAllowed; %>
+<section class="mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 class="h4 mb-0" id="symbol-groups-title" style="cursor: pointer; user-select: none;" title="Reload page and reset sorting"><%= title %></h2>
+          <p class="text-secondary small mb-0 mt-1">
+            Use symbol groups to filter related symbols together. For example, "tech stocks" or "dividend stocks". Use the rollup option to aggregate group totals together for charting.
+          </p>
+        </div>
+
+      </div>
+
+      <% if (isDemo && !demoEditsAllowed) { %>
+      <div class="alert alert-danger d-flex align-items-center mb-3" role="alert">
+        <i class="fa-solid fa-circle-exclamation me-2"></i>
+        <div>Edits are disabled in demo mode.</div>
+      </div>
+      <% } %>
+
+      <div class="d-flex align-items-center mb-3 gap-2">
+        <div class="input-group input-group-sm" style="width: 250px;">
+          <input type="text" id="symbol-groups-search" class="form-control" placeholder="Search...">
+          <button class="btn btn-outline-secondary" type="button" id="symbol-groups-clear-search" title="Clear search">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+              <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"/>
+            </svg>
+          </button>
+        </div>
+
+        <button id="add-new-group" class="btn btn-outline-secondary btn-sm" <%= editsEnabled ? '' : 'disabled aria-disabled="true"' %> title="<%= editsEnabled ? 'Add New' : 'Unavailable in demo mode' %>">Add New</button>
+      </div>
+
+
+      <div data-symbol-groups-table-root class="table-responsive"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="symbolGroupsDeleteModal" tabindex="-1" aria-labelledby="symbolGroupsDeleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="symbolGroupsDeleteModalLabel">
+          <i class="fa-solid fa-trash me-2"></i> Confirm Delete
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="d-flex align-items-center">
+          <i class="fa-solid fa-triangle-exclamation text-danger fs-3 me-3"></i>
+          <span id="symbol-groups-delete-message">Are you sure you want to delete this symbol group?</span>
+        </div>
+      </div>
+      <div class="modal-footer bg-dark border-secondary">
+        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="symbol-groups-confirm-delete" class="btn btn-danger btn-sm">
+          <i class="fa-solid fa-trash me-1"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- Error Modal (used for showing errors instead of alert()) -->
+      <div class="modal fade" id="symbolGroupsErrorModal" tabindex="-1" aria-labelledby="symbolGroupsErrorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-danger text-white">
+              <h5 class="modal-title" id="symbolGroupsErrorModalLabel">
+                <i class="fa-solid fa-triangle-exclamation me-2"></i> Error
+              </h5>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="d-flex align-items-start">
+                <i class="fa-solid fa-circle-exclamation text-danger fs-3 me-3"></i>
+                <div id="symbol-groups-error-message" class="flex-grow-1 text-break">An error occurred</div>
+              </div>
+            </div>
+            <div class="modal-footer bg-dark border-secondary">
+              <button type="button" class="btn btn-primary btn-sm" data-bs-dismiss="modal">OK</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        /* Match account balances title styling: hover underline and pointer */
+        #symbol-groups-title {
+          cursor: pointer;
+          user-select: none;
+        }
+        #symbol-groups-title:hover {
+          text-decoration: underline;
+          text-underline-offset: 3px;
+        }
+      </style>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const el = document.getElementById('symbol-groups-title');
+          if (el) {
+            el.addEventListener('click', function(e) {
+              e.preventDefault();
+              window.location = window.location.pathname;
+            });
+          }
+        });
+      </script>
+      <script src="/symbolGroupsClient.js" defer></script>

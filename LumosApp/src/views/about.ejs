@@ -1,0 +1,58 @@
+<section class="mt-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-10 col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h2 class="h4 mb-0">About Lumos</h2>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <p class="mb-2">
+          Lumos is an open source trade visualization tool built to help you explore account performance, trades, and portfolio history.
+        </p>
+      </div>
+
+      <div class="alert alert-light border border-secondary text-dark" role="alert" style="background-color: #f7f7f8; color: #2f2f2f;">
+        <h5 class="alert-heading mb-2 text-danger"><i class="fa-solid fa-triangle-exclamation me-2 text-danger" aria-hidden="true"></i> Risk Warning & Disclaimer</h5>
+        <p class="mb-2">
+          <strong>Lumos Trade is an open-source research tool powered by Vertex AI.</strong> This application is provided for <strong>educational purposes only</strong> and does not constitute financial, investment, legal, or tax advice.
+        </p>
+        <p class="mb-2">
+          <strong>Trading involves significant risk of loss.</strong> You may lose your entire investment. AI agents can hallucinate, produce errors, or fail unexpectedly. Past performance is not indicative of future results.
+        </p>
+        <p class="mb-2">
+          <strong>Not Financial Advice:</strong> Lumos Trade is a technical decision-support tool, NOT a financial advisor. The AI features analyze data but do not provide investment recommendations.
+        </p>
+        <p class="mb-0">
+          You are solely responsible for your investment decisions and compliance with all applicable laws. Always consult qualified financial, legal, and tax professionals before making any trades. See the full <% if (typeof githubRepoUrl !== 'undefined' && githubRepoUrl) { %><a href="<%= githubRepoUrl %>/blob/main/DISCLAIMER.md" target="_blank" rel="noopener" class="text-dark"><strong>DISCLAIMER</strong></a><% } else { %>DISCLAIMER<% } %> for complete risk disclosures.
+        </p>
+      </div>
+
+      <div class="text-center text-muted small fst-italic mb-4">
+        <div>
+          <% if (typeof githubRepoUrl !== 'undefined' && githubRepoUrl) { %>
+            <a href="<%= githubRepoUrl %>/blob/main/LICENSE" target="_blank" rel="noopener" class="text-secondary">Apache 2.0 License</a> |
+            <a href="<%= githubRepoUrl %>/blob/main/DISCLAIMER.md" target="_blank" rel="noopener" class="text-secondary">Disclaimer</a> |
+            <a href="<%= githubRepoUrl %>" target="_blank" rel="noopener" class="text-secondary">Github Project</a>
+          <% } else { %>
+            Apache 2.0 License | Disclaimer / Github Project
+          <% } %>
+        </div>
+        <div class="mt-1 text-dark small">
+          Created by <a class="text-dark" href="https://www.linkedin.com/in/mtisham/" target="_blank" rel="noopener">Mark Isham</a>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-center">
+        <a href="/home" class="btn btn-secondary">I Understand</a>
+      </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

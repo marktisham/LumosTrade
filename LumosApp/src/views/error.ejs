@@ -1,0 +1,21 @@
+<% const err = typeof error !== 'undefined' ? error : { message: 'Unknown error', stack: '', status: '', name: '', code: '' }; %>
+<div class="container mt-5">
+  <div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+      <h3>Error</h3>
+    </div>
+    <div class="card-body">
+      <h5 class="card-title"><%= err.message %></h5>
+      <pre class="bg-dark border border-secondary p-3 rounded text-light"><%= err.stack %></pre>
+      <% if (err.status) { %>
+        <div class="alert alert-warning">Status: <%= err.status %></div>
+      <% } %>
+      <% if (err.name) { %>
+        <div class="alert alert-info">Type: <%= err.name %></div>
+      <% } %>
+      <% if (err.code) { %>
+        <div class="alert alert-secondary">Code: <%= err.code %></div>
+      <% } %>
+    </div>
+  </div>
+</div>

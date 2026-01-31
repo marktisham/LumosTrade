@@ -1,0 +1,36 @@
+<section class="mt-4 tradeHistory-page">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h2 class="h4 mb-0" id="tradeHistory-title" style="cursor: pointer; user-select: none;" title="View the profit and loss of your trades over time"><%= title %></h2>
+          <p class="text-muted small mb-0">View the profit and loss of your trades over time</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div id="tradeHistory-date-display" class="text-muted small"></div>
+        </div>
+      </div>
+      <div data-tradeHistory-table-root class="table-responsive"></div>
+    </div>
+  </div>
+</section>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script>
+  window.LUMOS_ACCOUNTS = <%- accountsJson %>;
+  window.LUMOS_SYMBOL_GROUPS = <%- symbolGroupsJson %>;
+  window.LUMOS_BROKERS = <%- brokersJson %>;
+  window.lumos = window.lumos || {};
+  window.lumos.milestones = <%- JSON.stringify(milestones) %>;
+</script>
+<script src="/common/searchableDropdown.js"></script>
+<script src="/common/bookmarkBar.js"></script>
+<script src="/common/dateRangeDropdown.js"></script>
+<script src="/common/errorUtils.js"></script>
+<script src="/tradeHistoryClient.js" defer></script>
+
+<style>
+  #tradeHistory-title:hover {
+    text-decoration: underline;
+  }
+</style>

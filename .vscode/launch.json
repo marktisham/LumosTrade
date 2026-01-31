@@ -1,0 +1,163 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Demo CLI",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "program": "${workspaceFolder}/LumosCLI/dist/index.js",
+        "cwd": "${workspaceFolder}/LumosCLI",
+        "env": {
+            "NODE_ENV": "demo"
+        },
+        "preLaunchTask": "npm: build all",
+        "outFiles": [
+            "${workspaceFolder}/**/dist/**/*.js"
+        ],
+        "sourceMaps": true,
+        "envFile": "${workspaceFolder}/config/demo.expanded.env"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Demo Web App",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "program": "${workspaceFolder}/LumosApp/dist/index.js",
+        "cwd": "${workspaceFolder}/LumosApp",
+        "env": {
+            "PORT": "8080",
+            "NODE_ENV": "demo"
+        },
+        "console": "integratedTerminal",
+        "preLaunchTask": "npm: build all",
+        "outFiles": [
+            "${workspaceFolder}/**/dist/**/*.js"
+        ],
+        "serverReadyAction": {
+            "pattern": "LumosApp online",
+            "uriFormat": "http://localhost:8080/",
+            "action": "openExternally"
+        },
+        "sourceMaps": true,
+        "envFile": "${workspaceFolder}/config/demo.expanded.env"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Dev CLI",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "program": "${workspaceFolder}/LumosCLI/dist/index.js",
+        "cwd": "${workspaceFolder}/LumosCLI",
+        "env": {
+            "NODE_ENV": "development"
+        },
+        "preLaunchTask": "npm: build all",
+        "outFiles": [
+            "${workspaceFolder}/**/dist/**/*.js"
+        ],
+        "sourceMaps": true,
+        "envFile": "${workspaceFolder}/config/development.expanded.env"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Dev Web App",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "program": "${workspaceFolder}/LumosApp/dist/index.js",
+        "cwd": "${workspaceFolder}/LumosApp",
+        "env": {
+            "PORT": "8080",
+            "NODE_ENV": "development"
+        },
+        "console": "integratedTerminal",
+        "preLaunchTask": "npm: build all",
+        "outFiles": [
+            "${workspaceFolder}/**/dist/**/*.js"
+        ],
+        "serverReadyAction": {
+            "pattern": "LumosApp online",
+            "uriFormat": "http://localhost:8080/",
+            "action": "openExternally"
+        },
+        "sourceMaps": true,
+        "envFile": "${workspaceFolder}/config/development.expanded.env"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Prod CLI",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "program": "${workspaceFolder}/LumosCLI/dist/index.js",
+        "cwd": "${workspaceFolder}/LumosCLI",
+        "env": {
+            "NODE_ENV": "production"
+        },
+        "preLaunchTask": "npm: build all",
+        "outFiles": [
+            "${workspaceFolder}/**/dist/**/*.js"
+        ],
+        "sourceMaps": true,
+        "envFile": "${workspaceFolder}/config/production.expanded.env"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Prod Web App",
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "program": "${workspaceFolder}/LumosApp/dist/index.js",
+        "cwd": "${workspaceFolder}/LumosApp",
+        "env": {
+            "PORT": "8080",
+            "NODE_ENV": "production"
+        },
+        "console": "integratedTerminal",
+        "preLaunchTask": "npm: build all",
+        "outFiles": [
+            "${workspaceFolder}/**/dist/**/*.js"
+        ],
+        "serverReadyAction": {
+            "pattern": "LumosApp online",
+            "uriFormat": "http://localhost:8080/",
+            "action": "openExternally"
+        },
+        "sourceMaps": true,
+        "envFile": "${workspaceFolder}/config/production.expanded.env"
+    },
+    {
+        "type": "node",
+        "request": "launch",
+        "name": "Test LumosTrade",
+        "program": "${workspaceFolder}/LumosTrade/node_modules/.bin/jest",
+        "cwd": "${workspaceFolder}/LumosTrade",
+        "console": "integratedTerminal",
+        "env": {
+            "NODE_ENV": "development",
+            "NODE_OPTIONS": "--experimental-vm-modules"
+        },
+        "internalConsoleOptions": "neverOpen",
+        "preLaunchTask": "npm: build:lumostrade",
+        "sourceMaps": true,
+        "outFiles": [
+            "${workspaceFolder}/**/dist/**/*.js"
+        ],
+        "envFile": "${workspaceFolder}/config/development.expanded.env"
+    }
+    ]
+}

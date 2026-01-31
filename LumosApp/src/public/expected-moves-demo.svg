@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="340" viewBox="0 0 1250 340" role="img" aria-label="Sample expected moves table screenshot">
+  <defs>
+    <style>
+      .bg{fill:#1f2327}
+      .header{fill:#2b3036}
+      .row{fill:#242a30}
+      .row-alt{fill:#262c33}
+      .text{fill:#f1f3f5;font-family:Arial, Helvetica, sans-serif;font-size:16px;font-weight:600}
+      .subtext{fill:#d7dbe0;font-family:Arial, Helvetica, sans-serif;font-size:14px;font-weight:500}
+      .badge{fill:#d63031}
+      .badgeText{fill:#ffffff;font-family:Arial, Helvetica, sans-serif;font-size:12px;font-weight:700}
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1250" height="340" rx="8" />
+  <rect class="header" x="20" y="18" width="1210" height="38" rx="6" />
+  <text class="subtext" x="36" y="43">SYMBOL</text>
+  <text class="subtext" x="140" y="43">EXPIRY TYPE</text>
+  <text class="subtext" x="260" y="43">EXPIRY DATE</text>
+  <text class="subtext" x="430" y="43">CURRENT PRICE</text>
+  <text class="subtext" x="560" y="43">EXPECTED HIGH</text>
+  <text class="subtext" x="700" y="43">EXPECTED LOW</text>
+  <text class="subtext" x="835" y="43">2Σ HIGH</text>
+  <text class="subtext" x="930" y="43">2Σ LOW</text>
+  <text class="subtext" x="1020" y="43">IV (%)</text>
+  <text class="subtext" x="1110" y="43">LAST UPDATED</text>
+
+  <rect class="row" x="20" y="70" width="1210" height="40" rx="6" />
+  <rect class="row-alt" x="20" y="112" width="1210" height="40" rx="6" />
+  <rect class="row" x="20" y="154" width="1210" height="40" rx="6" />
+  <rect class="row-alt" x="20" y="196" width="1210" height="40" rx="6" />
+  <rect class="row" x="20" y="238" width="1210" height="40" rx="6" />
+  <rect class="row-alt" x="20" y="280" width="1210" height="40" rx="6" />
+
+  <text class="text" x="36" y="96">IBIT</text>
+  <text class="subtext" x="140" y="96">DAILY</text>
+  <text class="subtext" x="260" y="96">Fri, Jan 30, 2026</text>
+  <text class="subtext" x="430" y="96">$50.71</text>
+  <text class="subtext" x="560" y="96">$53.35</text>
+  <text class="subtext" x="700" y="96">$48.05</text>
+  <text class="subtext" x="835" y="96">$56.00</text>
+  <text class="subtext" x="930" y="96">$45.40</text>
+  <text class="subtext" x="1020" y="96">37.12%</text>
+  <text class="subtext" x="1110" y="96">Jan 23, 2026</text>
+
+  <text class="text" x="36" y="138">QQQ</text>
+  <text class="subtext" x="140" y="138">DAILY</text>
+  <text class="subtext" x="260" y="138">Wed, Jan 28, 2026</text>
+  <text class="subtext" x="430" y="138">$634.27</text>
+  <text class="subtext" x="560" y="138">$639.27</text>
+  <text class="subtext" x="700" y="138">$622.99</text>
+  <text class="subtext" x="835" y="138">$647.40</text>
+  <text class="subtext" x="930" y="138">$614.86</text>
+  <text class="subtext" x="1020" y="138">20.46%</text>
+  <text class="subtext" x="1110" y="138">Jan 27, 2026</text>
+
+  <text class="text" x="36" y="180">SLV</text>
+  <text class="subtext" x="140" y="180">DAILY</text>
+  <text class="subtext" x="260" y="180">Wed, Jan 28, 2026</text>
+  <text class="subtext" x="430" y="180">$102.78</text>
+  <text class="subtext" x="560" y="180">$110.88</text>
+  <text class="subtext" x="700" y="180">$85.80</text>
+  <text class="subtext" x="835" y="180">$123.43</text>
+  <text class="subtext" x="930" y="180">$73.25</text>
+  <text class="subtext" x="1020" y="180">143.19%</text>
+  <text class="subtext" x="1110" y="180">Jan 26, 2026</text>
+
+  <text class="text" x="36" y="222">SOXX</text>
+  <text class="subtext" x="140" y="222">DAILY</text>
+  <text class="subtext" x="260" y="222">Fri, Jan 30, 2026</text>
+  <text class="subtext" x="430" y="222">$356.50</text>
+  <text class="subtext" x="560" y="222">$362.20</text>
+  <text class="subtext" x="700" y="222">$327.22</text>
+  <text class="subtext" x="835" y="222">$379.68</text>
+  <text class="subtext" x="930" y="222">$309.74</text>
+  <text class="subtext" x="1020" y="222">36.01%</text>
+  <text class="subtext" x="1110" y="222">Jan 23, 2026</text>
+
+  <text class="text" x="36" y="264">SPY</text>
+  <text class="subtext" x="140" y="264">DAILY</text>
+  <text class="subtext" x="260" y="264">Wed, Jan 28, 2026</text>
+  <text class="subtext" x="430" y="264">$697.16</text>
+  <text class="subtext" x="560" y="264">$701.33</text>
+  <text class="subtext" x="700" y="264">$689.65</text>
+  <text class="subtext" x="835" y="264">$707.17</text>
+  <text class="subtext" x="930" y="264">$683.81</text>
+  <text class="subtext" x="1020" y="264">13.33%</text>
+  <text class="subtext" x="1110" y="264">Jan 27, 2026</text>
+
+  <text class="text" x="36" y="306">TSLA</text>
+  <text class="subtext" x="140" y="306">DAILY</text>
+  <text class="subtext" x="260" y="306">Fri, Jan 30, 2026</text>
+  <text class="subtext" x="430" y="306">$432.48</text>
+  <text class="subtext" x="560" y="306">$484.78</text>
+  <text class="subtext" x="700" y="306">$413.34</text>
+  <text class="subtext" x="835" y="306">$520.50</text>
+  <text class="subtext" x="930" y="306">$377.62</text>
+  <text class="subtext" x="1020" y="306">56.47%</text>
+  <text class="subtext" x="1110" y="306">Jan 23, 2026</text>
+</svg>

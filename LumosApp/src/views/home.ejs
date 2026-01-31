@@ -1,0 +1,148 @@
+
+<div class="text-center mb-0 home-hero position-relative">
+  <% if (demoMode && githubRepoUrl) { %>
+  <div class="position-absolute top-0 end-0 mt-3 me-3 d-none d-md-block">
+    <a href="<%= githubRepoUrl %>" target="_blank" class="badge bg-secondary text-white text-decoration-none text-nowrap" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
+      <i class="fa-brands fa-github me-1"></i>Learn more about this project.
+    </a>
+  </div>
+  <% } %>
+  <h1 class="display-4 fw-bold mb-3 text-light"><%= title %></h1>
+  <p class="lead text-secondary"><%= message %></p>
+  <div class="mt-4 mb-4">
+    <a href="/chat" class="btn btn-ai btn-sm me-2" aria-label="AI Chat">
+      <i class="fa-solid fa-comments me-2"></i>AI Chat
+    </a>
+    <a href="/conjure" class="btn btn-ai btn-sm" aria-label="AI Conjure">
+      <i class="fa-solid fa-hat-wizard me-2"></i>AI Conjure
+    </a>
+  </div>
+</div>
+
+<div class="home-tabs-sticky" x-data="{ activeTab: localStorage.getItem('homeTab') || 'accounts' }">
+  <div class="container">
+    <ul class="nav nav-tabs home-nav-tabs">
+      <% (sections || []).forEach(function(section, index) { 
+        var tabId = section.title.toLowerCase();
+      %>
+        <li class="nav-item">
+          <button class="nav-link" 
+                  :class="{ 'active': activeTab === '<%= tabId %>' }"
+                  @click="activeTab = '<%= tabId %>'; localStorage.setItem('homeTab', '<%= tabId %>')">
+            <i class="<%= section.icon || 'fa-solid fa-folder' %>"></i> <%= section.title %>
+          </button>
+        </li>
+      <% }); %>
+    </ul>
+  </div>
+
+  <div class="home-tab-content">
+    <div class="container">
+      <% (sections || []).forEach(function(section, index) { 
+        var tabId = section.title.toLowerCase();
+      %>
+        <div x-show="activeTab === '<%= tabId %>'" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 transform translate-y-4"
+             x-transition:enter-end="opacity-100 transform translate-y-0">
+          <div class="row justify-content-center">
+            <div class="col-lg-10">
+              <div class="row g-4">
+                <% section.cards.forEach(function(card) { %>
+                  <div class="col-md-6">
+                    <div class="card shadow-sm home-card border-0 position-relative">
+                      <div class="card-body">
+                        <div class="home-card-header d-flex align-items-start mb-3">
+                          <div class="home-card-icon-circle">
+                            <i class="<%= card.icon %>"></i>
+                          </div>
+                          <div class="flex-grow-1">
+                            <h5 class="card-title fw-bold mb-2">
+                              <a href="<%= card.url %>" class="text-decoration-none stretched-link"><%= card.label %></a>
+                            </h5>
+                            <p class="card-text text-secondary small mb-0"><%= card.description %></p>
+                          </div>
+                          <div class="home-card-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                          </div>
+                        </div>
+                        
+                        <% if (card.shortcuts && card.shortcuts.length > 0) { %>
+                          <div class="home-saved-views">
+                            <span class="home-saved-views-label">Saved Views</span>
+                            <ul class="home-saved-views-list">
+                              <% card.shortcuts.forEach(function(shortcut) { %>
+                                <li>
+                                  <a href="<%= shortcut.url %>" @click.stop>
+                                    <i class="fa-solid fa-bookmark"></i> <%= shortcut.label %>
+                                  </a>
+                                </li>
+                              <% }); %>
+                            </ul>
+                          </div>
+                        <% } %>
+                        <% if (demoMode) { %>
+                          <div class="home-saved-views" data-card-url="<%= card.url %>" style="display: none;">
+                            <span class="home-saved-views-label">Saved Views</span>
+                            <ul class="home-saved-views-list"></ul>
+                          </div>
+                        <% } %>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
+<% if (demoMode) { %>
+<script>
+(function() {
+  // Map card URLs to their localStorage keys
+  const urlToPageMap = {
+    '/accounts': 'AccountsViewState',
+    '/trades': 'TradeViewState',
+    '/tradeHistory': 'tradeHistory',
+    '/accountHistory': 'AccountHistoryViewState',
+    '/orders': 'OrdersViewState'
+  };
+
+  // Load bookmarks from localStorage for each card
+  document.querySelectorAll('.home-saved-views[data-card-url]').forEach(container => {
+    const cardUrl = container.getAttribute('data-card-url');
+    const pageName = urlToPageMap[cardUrl];
+    
+    if (!pageName) return;
+    
+    const storageKey = `lumos-bookmarks-${pageName}`;
+    const stored = localStorage.getItem(storageKey);
+    
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        if (data && data.bookmarks && data.bookmarks.length > 0) {
+          const list = container.querySelector('.home-saved-views-list');
+          data.bookmarks.forEach(bookmark => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `${cardUrl}?bookmark=${encodeURIComponent(bookmark.name)}`;
+            a.onclick = (e) => e.stopPropagation();
+            a.innerHTML = `<i class="fa-solid fa-bookmark"></i> ${bookmark.name}`;
+            li.appendChild(a);
+            list.appendChild(li);
+          });
+          container.style.display = '';
+        }
+      } catch (e) {
+        console.error('Error loading bookmarks for', pageName, e);
+      }
+    }
+  });
+})();
+</script>
+<% } %>

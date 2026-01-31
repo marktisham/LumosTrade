@@ -1,0 +1,128 @@
+
+<div class="container-fluid h-100">
+  <div class="conjure-container">
+    <!-- Header -->
+    <div class="conjure-header">
+      <h3 class="mb-0">
+        <i class="fa-solid fa-hat-wizard me-2 text-success"></i><%= title %>
+      </h3>
+    </div>
+
+    <!-- Canvas Area (where charts/tables will be rendered) -->
+    <div id="conjureCanvas" class="conjure-canvas">
+      <div class="conjure-placeholder">
+        <i class="fa-solid fa-wand-magic-sparkles fa-3x text-muted mb-3"></i>
+        <p class="text-muted">Enter a prompt below to visualize data</p>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="conjure-input-container chat-input-container">
+      <div class="input-group">
+        <textarea 
+          id="conjureInput" 
+          class="form-control" 
+          placeholder="Describe the visualization you want to create..."
+          rows="2"
+        ></textarea>
+        <button id="conjureStopBtn" class="btn btn-danger" style="display: none;" title="Stop Processing">
+          <i class="fa-solid fa-stop"></i>
+        </button>
+        <button id="conjureSubmitBtn" class="btn btn-success">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </button>
+      </div>
+      <div id="conjureError" class="conjure-error mt-2" style="display: none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Include Highcharts library -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+
+<!-- Include conjure client script -->
+<script src="/conjureClient.js" defer></script>
+
+<style>
+  .conjure-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0.5rem 1rem 1rem 1rem;
+  }
+
+  .conjure-header {
+    padding: 0.25rem 0;
+    margin-bottom: 0.75rem;
+  }
+
+  .conjure-canvas {
+    min-height: 150px;
+    max-height: 70vh;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 8px;
+    padding: 2rem;
+    margin-bottom: 1rem;
+    background: var(--bs-body-bg);
+    overflow: auto;
+  }
+
+  .conjure-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+
+  .conjure-status {
+    padding: 0.75rem 1rem;
+    background: var(--bs-secondary-bg);
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .conjure-input-container {
+    padding: 1rem 0;
+    border-top: 1px solid var(--bs-border-color);
+  }
+
+  .conjure-input-container textarea {
+    resize: none;
+    border-radius: 8px 0 0 8px;
+    font-size: 0.95rem;
+  }
+
+  .conjure-input-container button {
+    border-radius: 0 8px 8px 0;
+    padding: 0 1.5rem;
+  }
+
+  .conjure-error {
+    padding: 0.75rem 1rem;
+    background: var(--bs-danger-bg-subtle);
+    color: var(--bs-danger-text);
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 768px) {
+    .conjure-container {
+      padding: 0.5rem;
+    }
+
+    .conjure-canvas {
+      min-height: 300px;
+      padding: 1rem;
+    }
+
+    .conjure-input-container textarea {
+      font-size: 0.9rem;
+    }
+  }
+</style>

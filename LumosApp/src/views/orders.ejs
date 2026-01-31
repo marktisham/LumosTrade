@@ -1,0 +1,32 @@
+<section class="mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <div>
+          <h2 class="h4 mb-0" id="orders-title" style="cursor: pointer; user-select: none;" title="View historical orders from the broker."><%= title %></h2>
+          <p class="text-muted small mb-0">View historical orders from the broker.</p>
+        </div>
+      </div>
+      <div data-orders-table-root class="table-responsive"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  #orders-title:hover {
+    text-decoration: underline;
+  }
+</style>
+
+<script>
+  window.LUMOS_ACCOUNTS = <%- accountsJson %>;
+  window.LUMOS_SYMBOL_GROUPS = <%- symbolGroupsJson %>;
+  window.lumosAccountsBrokers = <%- JSON.stringify(brokers || []) %>;
+  window.lumos = window.lumos || {};
+  window.lumos.milestones = <%- JSON.stringify(milestones) %>;
+</script>
+<script src="/common/bookmarkBar.js"></script>
+<script src="/common/searchableDropdown.js"></script>
+<script src="/common/dateRangeDropdown.js"></script>
+<script src="/common/errorUtils.js"></script>
+<script src="/ordersClient.js" defer></script>

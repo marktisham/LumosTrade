@@ -1,0 +1,12 @@
+{
+  "type": "node",
+  "request": "launch",
+  "name": "Jest: LumosTrade Tests",
+  "program": "${workspaceFolder}/LumosTrade/node_modules/.bin/jest",
+  "args": [
+    "--runInBand"
+  ],
+  "cwd": "${workspaceFolder}/LumosTrade",
+  "console": "integratedTerminal",
+  "internalConsoleOptions": "neverOpen"
+}

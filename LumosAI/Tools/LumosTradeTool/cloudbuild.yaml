@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_IMAGE_URL}'
+      - '-f'
+      - 'LumosAI/Tools/LumosTradeTool/Dockerfile'
+      - '.'
+images:
+  - '${_IMAGE_URL}'

@@ -1,0 +1,141 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-success border-bottom border-secondary">
+  <div class="container">
+    <!-- Left side: Home icon + Hamburger menu -->
+    <div class="d-flex align-items-center">
+      <a class="navbar-home-icon d-lg-none" href="/home" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+      <button class="navbar-toggler ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+    
+    <!-- Mobile Demo Mode badge (right-aligned) -->
+    <% if (locals.demoMode) { %>
+    <div class="ms-auto d-lg-none">
+      <span class="badge bg-warning text-dark" style="font-size: 0.7rem;">
+        <div class="fw-bold">Demo Mode</div>
+        <div class="small" style="font-weight: normal; font-size: 0.65rem;">Simulated</div>
+      </span>
+    </div>
+    <% } %>
+    
+    <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      <div class="navbar-nav me-auto">
+        <a class="nav-link text-white d-flex align-items-center" href="/home">
+          <i class="fa-solid fa-house me-2" style="margin-bottom: 2px;" aria-hidden="true"></i> Home
+        </a>
+        <a class="nav-link text-white d-flex align-items-center" href="/chat">
+          <i class="fa-solid fa-comments me-2" style="margin-bottom: 2px;" aria-hidden="true"></i> Chat
+        </a>
+        <a class="nav-link text-white d-flex align-items-center" href="/conjure">
+          <i class="fa-solid fa-hat-wizard me-2" style="margin-bottom: 2px;" aria-hidden="true"></i> Conjure
+        </a>
+        
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" id="accountsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-wallet me-2" aria-hidden="true"></i> Accounts
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="accountsDropdown">
+            <li><a class="dropdown-item d-flex align-items-center" href="/accounts" title="View current balances of your accounts.">
+              <i class="fa-solid fa-wallet me-2" aria-hidden="true"></i> Balances
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/accountHistory" title="Track the value of your accounts over time.">
+              <i class="fa-solid fa-chart-area me-2" aria-hidden="true"></i> History
+            </a></li>
+          </ul>
+        </div>
+
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" id="tradesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-magnifying-glass-chart me-2" aria-hidden="true"></i> Trades
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="tradesDropdown">
+            <li><a class="dropdown-item d-flex align-items-center" href="/trades" title="View the current status of your open trades.">
+              <i class="fa-solid fa-magnifying-glass-chart me-2" aria-hidden="true"></i> Open Trades
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/tradeHistory" title="View the profit and loss of your trades over time.">
+              <i class="fa-solid fa-clock-rotate-left me-2" aria-hidden="true"></i> Trade History
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/orders" title="View historical orders from the broker.">
+              <i class="fa-solid fa-list-check me-2" aria-hidden="true"></i> Order History
+            </a></li>
+          </ul>
+        </div>
+
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" id="toolsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-wrench me-2" aria-hidden="true"></i> Tools
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="toolsDropdown">
+            <li><a class="dropdown-item d-flex align-items-center" href="/expectedMoves">
+              <i class="fa-solid fa-chart-line me-2" aria-hidden="true"></i> Expected Moves
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/placeOrders">
+              <i class="fa-solid fa-calendar-plus me-2" aria-hidden="true"></i> Place Orders
+            </a></li>
+          </ul>
+        </div>
+
+        <!-- Settings dropdown - visible only in mobile hamburger menu -->
+        <div class="nav-item dropdown d-lg-none">
+          <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-gear me-2" aria-hidden="true"></i> Settings
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="settingsDropdown">
+            <li><a class="dropdown-item d-flex align-items-center" href="/milestones">
+              <i class="fa-solid fa-flag me-2" aria-hidden="true"></i> Milestones
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/symbolGroups">
+              <i class="fa-solid fa-layer-group me-2" aria-hidden="true"></i> Symbol Groups
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/brokers">
+              <i class="fa-solid fa-building-columns me-2" aria-hidden="true"></i> Brokers
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/about">
+              <i class="fa-solid fa-circle-info me-2" aria-hidden="true"></i> About
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/logout">
+              <i class="fa-solid fa-right-from-bracket me-2" aria-hidden="true"></i> Sign Out
+            </a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="navbar-nav ms-auto">
+        <% if (locals.demoMode) { %>
+        <div class="d-none d-lg-flex align-items-center me-3">
+          <span class="badge bg-warning text-dark">
+            <div class="fw-bold">Demo Mode</div>
+            <div class="small" style="font-weight: normal;">All results simulated</div>
+          </span>
+        </div>
+        <% } %>
+        <!-- Desktop profile dropdown - only visible on larger screens -->
+        <div class="nav-item dropdown d-none d-lg-block">
+          <a class="nav-link dropdown-toggle text-white d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-user" style="margin-bottom: 2px;" aria-hidden="true"></i>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+            <li><a class="dropdown-item d-flex align-items-center" href="/milestones">
+              <i class="fa-solid fa-flag me-2" aria-hidden="true"></i> Milestones
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/symbolGroups">
+              <i class="fa-solid fa-layer-group me-2" aria-hidden="true"></i> Symbol Groups
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/brokers">
+              <i class="fa-solid fa-building-columns me-2" aria-hidden="true"></i> Brokers
+            </a></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/about">
+              <i class="fa-solid fa-circle-info me-2" aria-hidden="true"></i> About
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item d-flex align-items-center" href="/logout">
+              <i class="fa-solid fa-right-from-bracket me-2" aria-hidden="true"></i> Sign Out
+            </a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

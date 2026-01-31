@@ -1,0 +1,99 @@
+
+<div class="container-fluid h-100">
+  <!-- Title Header -->
+  <div class="chat-title-header">
+    <h3 class="mb-0">
+      <i class="fa-solid fa-comments me-2 text-success"></i><%= title %>
+    </h3>
+  </div>
+
+  <div class="row h-100 flex-nowrap">
+    <!-- Sidebar for session list -->
+    <div class="chat-sidebar p-0" id="chatSidebar">
+      <!-- Collapsed state buttons -->
+      <div class="chat-sidebar-collapsed" id="sidebarCollapsed">
+        <button id="newSessionBtnCollapsed" class="btn btn-success btn-sm mb-2" title="Create new session" aria-label="Create new session">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+        <button id="deleteAllSessionsBtnCollapsed" class="btn btn-danger btn-sm mb-2" title="Delete all history" aria-label="Delete all history">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+        <button id="expandSidebarBtn" class="btn btn-outline-secondary btn-sm" title="Expand sidebar" aria-label="Expand sidebar">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+      
+      <!-- Expanded state content -->
+      <div class="chat-sidebar-expanded" id="sidebarExpanded">
+        <div class="chat-sidebar-header">
+          <div class="d-flex justify-content-between align-items-center w-100 mb-2">
+            <button id="collapseSidebarBtn" class="btn btn-sm btn-link text-secondary p-0" title="Collapse sidebar" aria-label="Collapse sidebar">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+          </div>
+
+          <div class="d-flex w-100 gap-2 chat-header-button-row">
+            <button id="newSessionBtn" class="btn btn-success btn-sm py-1 text-nowrap" title="Create new session" aria-label="Create new session">
+              <i class="fa-solid fa-plus me-1"></i>Session
+            </button>
+            <button id="deleteAllSessionsBtn" class="btn btn-danger btn-sm py-1 text-nowrap" title="Delete all history" aria-label="Delete all history">
+              <i class="fa-solid fa-trash me-1"></i>History
+            </button>
+          </div>
+        </div>
+        <div class="chat-sidebar-search p-2">
+          <input 
+            type="text" 
+            id="sessionSearch" 
+            class="form-control form-control-sm" 
+            placeholder="Search sessions..."
+          >
+        </div>
+        <div id="sessionList" class="chat-session-list"></div>
+      </div>
+    </div>
+
+    <!-- Main chat area -->
+    <div class="chat-main p-0">
+      <div class="chat-container">
+        <div class="chat-header">
+          <div>
+            <h5 id="sessionTitle" class="mb-0">New Chat</h5>
+            <small id="sessionDate" class="text-muted"></small>
+          </div>
+          <div>
+            <!-- Mobile-only new session button (appears on small screens) -->
+            <button id="mobileNewSessionBtn" class="btn btn-success btn-sm d-inline-block d-md-none ms-2" title="New Session">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <div id="chatMessages" class="chat-messages"></div>
+
+        <div class="chat-input-container">
+          <div class="input-group">
+            <textarea 
+              id="messageInput" 
+              class="form-control" 
+              placeholder="Ask anything..."
+              rows="2"
+            ></textarea>
+            <button id="stopBtn" class="btn btn-danger" style="display: none;" title="Stop Processing">
+              <i class="fa-solid fa-stop"></i>
+            </button>
+            <button id="sendBtn" class="btn btn-success">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+          <div id="chatError" class="chat-error mt-2" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Include marked.js for markdown rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked@11.1.1/marked.min.js"></script>
+<!-- Include chat client script -->
+<script src="/chatClient.js" defer></script>

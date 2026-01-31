@@ -134,6 +134,31 @@ dist
 !.yarn/sdks
 !.yarn/versions
 
+# Environment and secrets
+# Exclude expanded env files (auto-generated)
+config/*.expanded.env
+config/*.secrets.json
+config/*.env.local
+.env
+.env.local
+
+# Dependencies
+node_modules/
+.venv/
+__pycache__/
+
+# Build outputs
+dist/
+*.tsbuildinfo
+
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Logs
+*.log
+npm-debug.log*
+
+.DS_Store
+session.db
+LumosAI/Tools/LumosDB/toolbox

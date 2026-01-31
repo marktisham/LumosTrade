@@ -1,0 +1,11 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - '${_IMAGE_URL}'
+      - '-f'
+      - 'LumosApp/Dockerfile'
+      - '.'
+images:
+  - '${_IMAGE_URL}'

@@ -1,0 +1,598 @@
+sources:
+  my-sql-source:
+    kind: cloud-sql-mysql
+    project: ${SQL_PROJECT}
+    region: ${SQL_REGION}
+    instance: ${SQL_INSTANCE}
+    database: ${SQL_DATABASE}
+    user: ${SQL_USER}
+    password: ${SQL_PASSWORD}
+    ipType: public
+tools:
+  search-trades:
+    kind: mysql-sql
+    source: my-sql-source
+    description: |
+      Use this tool to search information about Trades in the database. Trades are the rollups of all orders (buy and sell / sell short and buy to cover) that have been executed for a given symbol in a specific account. When the user asks about performance/gains/losses, they are typically referring to trades. All fields are optional so the user can filter on any combination of the parameters. Pass in null for any parameters that are not being filtered on.
+      
+      Always display the TradeID in your response unless the user specifically asks not to show it. Encourage users to ask for a detailed history of any trade by its TradeID using the trade-history tool.
+
+      Prompting tips: Use `search-trades` when you want a list of trades for a specific symbol or to check the current status of one or more trades. `search-trades` returns a TradeID which can be used as the required input to `trade-history` for a historical overview of a specific trade. If the user is asking how a trade performed or wants more detail about a specific trade, prefer `trade-history`. If they are asking for multiple trades or the current status of trades, `search-trades` is more appropriate.
+      
+      All dates and times are displayed in US Eastern (America/New_York) timezone. 
+    parameters:
+      - name: symbol
+        type: string
+        description: Searches all trades that match a given symbol or ticker passed in. 
+        required: false
+      - name: accountName
+        type: string
+        description: Filter trades by an account name. Account name may be a substring of the full name. 
+        required: false
+      - name: winningTrade
+        type: boolean
+        description: Filter trades on whether they are winning or losing trades.
+        required: false
+      - name: dateAfter
+        type: string
+        description: Filter trades that were opened on or after this date. Format YYYY-MM-DD. 
+        required: false
+      - name: dateBefore
+        type: string
+        description: Filter trades that were opened on or before this date. Format YYYY-MM-DD.
+        required: false
+      - name: sortBy
+        type: string
+        description: |
+          Column to sort results by. Allowed values: "OpenDate", "CloseDate", "TotalGain", "TotalGainPct", "CurrentValue". Prefix with '-' for descending (e.g. "-OpenDate").
+        required: false
+      - name: maxRecords
+        type: integer
+        description: Maximum number of records to return. Defaults to 5 if not provided. Max allowed value is 100.
+        required: false
+    statement: |
+      with params as (select ? as symbol, ? as accountName, CAST(? AS UNSIGNED) as winningTrade,
+      ? as dateAfter, ? as dateBefore, ? as sortBy, LEAST(COALESCE(CAST(? AS UNSIGNED), 5), 100) as maxRecords),
+      ranked as (
+        select t.TradeID, t.AccountID, a.`Name` as AccountName, t.Symbol, t.LongTrade, t.WinningTrade,
+          CONVERT_TZ(t.OpenDate, 'UTC', 'America/New_York') as OpenDate,
+          CONVERT_TZ(t.CloseDate, 'UTC', 'America/New_York') as CloseDate,
+          t.DurationMS, t.Closed, t.OpenQuantity, t.BreakEvenPrice, t.CurrentPrice, t.TotalGain, t.TotalGainPct, 
+          t.CurrentCost, t.CurrentValue, t.LargestRisk, t.TotalFees, t.TotalOrderCount, t.ManuallyAdjusted,
+          t.RealizedGain, t.UnrealizedGain, t.AvgEntryPrice, t.AvgExitPrice,
+          params.maxRecords,
+          ROW_NUMBER() OVER (
+            order by
+              case when params.sortBy = 'OpenDate' then t.OpenDate end asc,
+              case when params.sortBy = '-OpenDate' then t.OpenDate end desc,
+              case when params.sortBy = 'CloseDate' then t.CloseDate end asc,
+              case when params.sortBy = '-CloseDate' then t.CloseDate end desc,
+              case when params.sortBy = 'TotalGain' then t.TotalGain end asc,
+              case when params.sortBy = '-TotalGain' then t.TotalGain end desc,
+              case when params.sortBy = 'TotalGainPct' then t.TotalGainPct end asc,
+              case when params.sortBy = '-TotalGainPct' then t.TotalGainPct end desc,
+              case when params.sortBy = 'CurrentValue' then t.CurrentValue end asc,
+              case when params.sortBy = '-CurrentValue' then t.CurrentValue end desc,
+              t.TradeID desc
+          ) as rn
+        from Trades t join Accounts a on t.AccountID=a.AccountID join params
+        where 
+          (params.symbol is null or t.Symbol=params.symbol) and 
+          (params.winningTrade is null or t.WinningTrade=params.winningTrade) and 
+          (params.dateAfter is null or t.OpenDate>=params.dateAfter) and 
+          (params.dateBefore is null or t.OpenDate<=params.dateBefore) and 
+          (params.accountName is null or a.`Name` like concat('%',params.accountName,'%'))
+      )
+      select * from ranked where rn <= maxRecords;
+  trade-history:
+    kind: mysql-sql
+    source: my-sql-source
+    description: |
+      Use this tool to retrieve historical snapshots of a specific trade over time. Returns historical data showing how a trade's performance evolved during the specified rollup period (daily, weekly, or monthly). 
+      
+      This tool should be used for getting the history of a specific trade. To get the latest details of a trade, use search-trades instead.
+
+      The result set includes these additional fields from the `TradeHistory` table: `CurrentPrice` (from `CurrentPriceAtPeriodEnd`), `BreakEvenPrice` (from `BreakevenPriceAtPeriodEnd`), `OpenQuantity` (from `OpenQuantityAtPeriodEnd`), `RealizedGain` (from `RealizedGainAtPeriodEnd`), and `UnrealizedGain` (from `UnrealizedGainAtPeriodEnd`).
+
+      Prompting tips: Use `trade-history` when you want a historical overview of how a specific trade performed over time. This tool requires a TradeID (returned by `search-trades`) as input. If the user is asking about multiple trades or wants the current status of trades, use `search-trades` instead.
+      
+      Unless the user specifies otherwise, use daily rollups (rollupPeriod = 1) and filter to the last 30 days using the periodEndAfter parameter (set to 30 days before today).
+      
+      All dates and times are displayed in US Eastern (America/New_York) timezone.
+    parameters:
+      - name: tradeID
+        type: integer
+        description: The TradeID to retrieve history for (exact match). This parameter is required.
+        required: true
+      - name: rollupPeriod
+        type: integer
+        description: |
+          The time period for trade history rollups. Values: 1=daily (default), 2=weekly, 3=monthly. If not provided, defaults to 1 (daily).
+        required: false
+      - name: periodEndAfter
+        type: string
+        description: Filter history records with PeriodEnd on or after this date. Format YYYY-MM-DD.
+        required: false
+      - name: periodEndBefore
+        type: string
+        description: Filter history records with PeriodEnd on or before this date. Format YYYY-MM-DD.
+        required: false
+      - name: periodGainMin
+        type: string
+        description: Minimum PeriodGain (>=). Use null to ignore.
+        required: false
+      - name: periodGainMax
+        type: string
+        description: Maximum PeriodGain (<=). Use null to ignore.
+        required: false
+      - name: periodGainPctMin
+        type: string
+        description: Minimum PeriodGainPct (>=). Use null to ignore.
+        required: false
+      - name: periodGainPctMax
+        type: string
+        description: Maximum PeriodGainPct (<=). Use null to ignore.
+        required: false
+      - name: totalGainMin
+        type: string
+        description: Minimum TotalGain (>=). Use null to ignore.
+        required: false
+      - name: totalGainMax
+        type: string
+        description: Maximum TotalGain (<=). Use null to ignore.
+        required: false
+      - name: totalGainPctMin
+        type: string
+        description: Minimum TotalGainPct (>=). Use null to ignore.
+        required: false
+      - name: totalGainPctMax
+        type: string
+        description: Maximum TotalGainPct (<=). Use null to ignore.
+        required: false
+      - name: currentCostMin
+        type: string
+        description: Minimum CurrentCost (>=). Use null to ignore.
+        required: false
+      - name: currentCostMax
+        type: string
+        description: Maximum CurrentCost (<=). Use null to ignore.
+        required: false
+      - name: currentValueMin
+        type: string
+        description: Minimum CurrentValue (>=). Use null to ignore.
+        required: false
+      - name: currentValueMax
+        type: string
+        description: Maximum CurrentValue (<=). Use null to ignore.
+        required: false
+      - name: sortBy
+        type: string
+        description: |
+          Column to sort results by. Allowed values: "TradeID", "PeriodEnd", "PeriodGain", "PeriodGainPct", "TotalGain", "TotalGainPct", "CurrentCost", "CurrentValue". Prefix with '-' for descending (e.g. "-PeriodEnd"). Default is "-PeriodEnd" (most recent first).
+        required: false
+      - name: maxRecords
+        type: integer
+        description: Maximum number of records to return. Defaults to 15 if not provided. Max allowed value is 500.
+        required: false
+    statement: |
+      with params as (select CAST(? AS UNSIGNED) as tradeID,
+      COALESCE(CAST(? AS UNSIGNED), 1) as rollupPeriod,
+      COALESCE(?, DATE_SUB(CURDATE(), INTERVAL 30 DAY)) as periodEndAfter, ? as periodEndBefore,
+      CAST(? AS DECIMAL(13,4)) as periodGainMin, CAST(? AS DECIMAL(13,4)) as periodGainMax,
+      CAST(? AS DECIMAL(13,4)) as periodGainPctMin, CAST(? AS DECIMAL(13,4)) as periodGainPctMax,
+      CAST(? AS DECIMAL(13,4)) as totalGainMin, CAST(? AS DECIMAL(13,4)) as totalGainMax,
+      CAST(? AS DECIMAL(13,4)) as totalGainPctMin, CAST(? AS DECIMAL(13,4)) as totalGainPctMax,
+      CAST(? AS DECIMAL(13,4)) as currentCostMin, CAST(? AS DECIMAL(13,4)) as currentCostMax,
+      CAST(? AS DECIMAL(13,4)) as currentValueMin, CAST(? AS DECIMAL(13,4)) as currentValueMax,
+      COALESCE(?, '-PeriodEnd') as sortBy, LEAST(COALESCE(CAST(? AS UNSIGNED), 15), 500) as maxRecords),
+      ranked as (
+        select th.TradeID, t.Symbol, a.`Name` as AccountName,
+          th.PeriodEnd, th.PeriodGain, th.PeriodGainPct, th.TotalGain, th.TotalGainPct,
+          th.CurrentCost, th.CurrentValue,
+          th.CurrentPriceAtPeriodEnd as CurrentPrice,
+          th.BreakevenPriceAtPeriodEnd as BreakEvenPrice,
+          th.OpenQuantityAtPeriodEnd as OpenQuantity,
+          th.RealizedGainAtPeriodEnd as RealizedGain,
+          th.UnrealizedGainAtPeriodEnd as UnrealizedGain,
+          params.maxRecords,
+          ROW_NUMBER() OVER (
+            order by
+              case when params.sortBy = 'TradeID' then th.TradeID end asc,
+              case when params.sortBy = '-TradeID' then th.TradeID end desc,
+              case when params.sortBy = 'PeriodEnd' then th.PeriodEnd end asc,
+              case when params.sortBy = '-PeriodEnd' then th.PeriodEnd end desc,
+              case when params.sortBy = 'PeriodGain' then th.PeriodGain end asc,
+              case when params.sortBy = '-PeriodGain' then th.PeriodGain end desc,
+              case when params.sortBy = 'PeriodGainPct' then th.PeriodGainPct end asc,
+              case when params.sortBy = '-PeriodGainPct' then th.PeriodGainPct end desc,
+              case when params.sortBy = 'TotalGain' then th.TotalGain end asc,
+              case when params.sortBy = '-TotalGain' then th.TotalGain end desc,
+              case when params.sortBy = 'TotalGainPct' then th.TotalGainPct end asc,
+              case when params.sortBy = '-TotalGainPct' then th.TotalGainPct end desc,
+              case when params.sortBy = 'CurrentCost' then th.CurrentCost end asc,
+              case when params.sortBy = '-CurrentCost' then th.CurrentCost end desc,
+              case when params.sortBy = 'CurrentValue' then th.CurrentValue end asc,
+              case when params.sortBy = '-CurrentValue' then th.CurrentValue end desc,
+              th.PeriodEnd desc, th.TradeID desc
+          ) as rn
+        from TradeHistory th
+        join Trades t on th.TradeID = t.TradeID
+        join Accounts a on t.AccountID = a.AccountID
+        join params
+        where
+          th.RollupPeriod = (select params.rollupPeriod from params) and
+          th.TradeID = (select params.tradeID from params) and
+          th.PeriodEnd >= params.periodEndAfter and
+          (params.periodEndBefore is null or th.PeriodEnd <= params.periodEndBefore) and
+          (params.periodGainMin is null or th.PeriodGain >= params.periodGainMin) and
+          (params.periodGainMax is null or th.PeriodGain <= params.periodGainMax) and
+          (params.periodGainPctMin is null or th.PeriodGainPct >= params.periodGainPctMin) and
+          (params.periodGainPctMax is null or th.PeriodGainPct <= params.periodGainPctMax) and
+          (params.totalGainMin is null or th.TotalGain >= params.totalGainMin) and
+          (params.totalGainMax is null or th.TotalGain <= params.totalGainMax) and
+          (params.totalGainPctMin is null or th.TotalGainPct >= params.totalGainPctMin) and
+          (params.totalGainPctMax is null or th.TotalGainPct <= params.totalGainPctMax) and
+          (params.currentCostMin is null or th.CurrentCost >= params.currentCostMin) and
+          (params.currentCostMax is null or th.CurrentCost <= params.currentCostMax) and
+          (params.currentValueMin is null or th.CurrentValue >= params.currentValueMin) and
+          (params.currentValueMax is null or th.CurrentValue <= params.currentValueMax)
+      )
+      select TradeID, Symbol, AccountName, PeriodEnd, PeriodGain, PeriodGainPct, TotalGain, TotalGainPct, CurrentCost, CurrentValue, CurrentPrice, BreakEvenPrice, OpenQuantity, RealizedGain, UnrealizedGain from ranked where rn <= maxRecords;
+
+  search-orders:
+    kind: mysql-sql
+    source: my-sql-source
+    description: |
+      Use this tool to search information about Orders in the database. Orders are the individual buy/sell executions for a symbol and trade. The result returns Account Name and the key order fields so callers can inspect executions. All filters are optional — pass null for any you don't want to filter on.
+      
+      All dates and times are displayed in US Eastern (America/New_York) timezone.
+    parameters:
+      - name: accountName
+        type: string
+        description: Filter orders by an account name. Account name may be a substring of the full name.
+        required: false
+      - name: BrokerOrderID
+        type: integer
+        description: Filter by BrokerOrderID (exact match).
+        required: false
+      - name: TradeID
+        type: integer
+        description: Filter by TradeID (exact match).
+        required: false
+      - name: Symbol
+        type: string
+        description: Filter by symbol.
+        required: false
+      - name: Action
+        type: string
+        description: |
+          Filter by order action. Allowed values: "BUY", "SELL", "SELL_SHORT", "BUY_TO_COVER".
+        required: false
+      - name: QuantityMin
+        type: string
+        description: Minimum Quantity (>=). Use null to ignore.
+        required: false
+      - name: QuantityMax
+        type: string
+        description: Maximum Quantity (<=). Use null to ignore.
+        required: false
+      - name: PriceMin
+        type: string
+        description: Minimum Price (>=). Use null to ignore.
+        required: false
+      - name: PriceMax
+        type: string
+        description: Maximum Price (<=). Use null to ignore.
+        required: false
+      - name: FeesMin
+        type: string
+        description: Minimum Fees (>=). Use null to ignore.
+        required: false
+      - name: FeesMax
+        type: string
+        description: Maximum Fees (<=). Use null to ignore.
+        required: false
+      - name: OrderAmountMin
+        type: string
+        description: Minimum OrderAmount (>=). Use null to ignore.
+        required: false
+      - name: OrderAmountMax
+        type: string
+        description: Maximum OrderAmount (<=). Use null to ignore.
+        required: false
+      - name: ExecutedAfter
+        type: string
+        description: Filter orders executed on or after this datetime (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
+        required: false
+      - name: ExecutedBefore
+        type: string
+        description: Filter orders executed on or before this datetime (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)
+        required: false
+      - name: sortBy
+        type: string
+        description: |
+          Column to sort results by. Allowed values: "AccountName", "BrokerOrderID", "TradeID", "Symbol", "Action", "Quantity", "Price", "Fees", "OrderAmount", "ExecutedTime". Prefix with '-' for descending (e.g. "-ExecutedTime").
+        required: false
+      - name: maxRecords
+        type: integer
+        description: Maximum number of records to return. Defaults to 5 if not provided. Max allowed value is 100.
+        required: false
+    statement: |
+      with params as (select ? as accountName, CAST(? AS UNSIGNED) as BrokerOrderID, CAST(? AS UNSIGNED) as TradeID,
+      ? as Symbol, ? as Action,
+      CAST(? AS DECIMAL(13,4)) as QuantityMin, CAST(? AS DECIMAL(13,4)) as QuantityMax,
+      CAST(? AS DECIMAL(13,4)) as PriceMin, CAST(? AS DECIMAL(13,4)) as PriceMax,
+      CAST(? AS DECIMAL(13,4)) as FeesMin, CAST(? AS DECIMAL(13,4)) as FeesMax,
+      CAST(? AS DECIMAL(13,4)) as OrderAmountMin, CAST(? AS DECIMAL(13,4)) as OrderAmountMax,
+      ? as ExecutedAfter, ? as ExecutedBefore, ? as sortBy,
+      LEAST(COALESCE(CAST(? AS UNSIGNED), 5), 100) as maxRecords),
+      ranked as (
+        select a.`Name` as AccountName, o.BrokerOrderID, o.TradeID, o.Symbol, o.Action, o.Quantity, o.Price, o.Fees, o.OrderAmount,
+          CONVERT_TZ(o.ExecutedTime, 'UTC', 'America/New_York') as ExecutedTime,
+          params.maxRecords,
+          ROW_NUMBER() OVER (
+            order by
+              case when params.sortBy = 'AccountName' then a.`Name` end asc,
+              case when params.sortBy = '-AccountName' then a.`Name` end desc,
+              case when params.sortBy = 'BrokerOrderID' then o.BrokerOrderID end asc,
+              case when params.sortBy = '-BrokerOrderID' then o.BrokerOrderID end desc,
+              case when params.sortBy = 'TradeID' then o.TradeID end asc,
+              case when params.sortBy = '-TradeID' then o.TradeID end desc,
+              case when params.sortBy = 'Symbol' then o.Symbol end asc,
+              case when params.sortBy = '-Symbol' then o.Symbol end desc,
+              case when params.sortBy = 'Action' then o.Action end asc,
+              case when params.sortBy = '-Action' then o.Action end desc,
+              case when params.sortBy = 'Quantity' then o.Quantity end asc,
+              case when params.sortBy = '-Quantity' then o.Quantity end desc,
+              case when params.sortBy = 'Price' then o.Price end asc,
+              case when params.sortBy = '-Price' then o.Price end desc,
+              case when params.sortBy = 'Fees' then o.Fees end asc,
+              case when params.sortBy = '-Fees' then o.Fees end desc,
+              case when params.sortBy = 'OrderAmount' then o.OrderAmount end asc,
+              case when params.sortBy = '-OrderAmount' then o.OrderAmount end desc,
+              case when params.sortBy = 'ExecutedTime' then o.ExecutedTime end asc,
+              case when params.sortBy = '-ExecutedTime' then o.ExecutedTime end desc,
+              o.ExecutedTime desc, o.OrderID desc
+          ) as rn
+        from Orders o join Accounts a on o.AccountID=a.AccountID join params
+        where 
+          (params.accountName is null or a.`Name` like concat('%',params.accountName,'%')) and 
+          (params.BrokerOrderID is null or o.BrokerOrderID = params.BrokerOrderID) and 
+          (params.TradeID is null or o.TradeID = params.TradeID) and 
+          (params.Symbol is null or o.Symbol = params.Symbol) and 
+          (params.Action is null or o.Action = params.Action) and 
+          (params.QuantityMin is null or o.Quantity >= params.QuantityMin) and 
+          (params.QuantityMax is null or o.Quantity <= params.QuantityMax) and 
+          (params.PriceMin is null or o.Price >= params.PriceMin) and 
+          (params.PriceMax is null or o.Price <= params.PriceMax) and 
+          (params.FeesMin is null or o.Fees >= params.FeesMin) and 
+          (params.FeesMax is null or o.Fees <= params.FeesMax) and 
+          (params.OrderAmountMin is null or o.OrderAmount >= params.OrderAmountMin) and 
+          (params.OrderAmountMax is null or o.OrderAmount <= params.OrderAmountMax) and 
+          (params.ExecutedAfter is null or o.ExecutedTime >= params.ExecutedAfter) and 
+          (params.ExecutedBefore is null or o.ExecutedTime <= params.ExecutedBefore)
+      )
+      select AccountName, BrokerOrderID, TradeID, Symbol, Action, Quantity, Price, Fees, OrderAmount, ExecutedTime from ranked where rn <= maxRecords;
+  account-balances:
+    kind: mysql-sql
+    source: my-sql-source
+    description: |
+      Use this tool to show current account balances. Returns all accounts with their most recent daily balance snapshot, including balance, gains, and activity metrics. Filters to non-closed accounts only.
+      
+      When users ask to "show accounts", "show my etrade accounts", "my accounts", "latest balances", "account balances", "show schwab balances", or similar requests, this is the right tool to use.
+      
+      By default shows all accounts. If brokerName is specified, filters to show only accounts for that broker (individual accounts, not aggregated).
+      
+      Unless specified otherwise, return the latest BalanceUpdateTime value (in US Eastern/New York timezone), INCLUDING date and time, in your response. Only include once at the end, for example "Balances as of Jan 19, 2025 1:12 pm ET".
+
+      All dates and times are displayed in US Eastern (America/New_York) timezone.
+    parameters:
+      - name: accountName
+        type: string
+        description: Filter by account name. Account name may be a substring of the full name.
+        required: false
+      - name: brokerName
+        type: string
+        description: |
+          Filter accounts by broker. Uses case-insensitive substring matching. When users say "etrade accounts" or "my etrade", pass "e*trade" (matches "E*TRADE" in database). When users say "schwab accounts" or "my schwab", pass "schwab" (matches "Charles Schwab" in database). Pass null to show all accounts.
+        required: false
+    statement: |
+      with params as (select ? as accountName, ? as brokerName),
+      latest_history as (
+        select ah.AccountID, ah.PeriodEnd, ah.Balance, ah.BalanceChangeAmount, ah.BalanceChangePct,
+          ah.TransferAmount, ah.TransferDescription, ah.InvestedAmount, ah.NetGain, ah.NetGainPct,
+          ah.Comment, ah.OrdersExecuted, CONVERT_TZ(ah.BalanceUpdateTime, 'UTC', 'America/New_York') as BalanceUpdateTime,
+          ROW_NUMBER() OVER (PARTITION BY ah.AccountID ORDER BY ah.PeriodEnd desc) as rn
+        from AccountHistory ah
+        where ah.RollupPeriod = 1
+      )
+      select a.`Name` as AccountName, b.`Name` as BrokerName,
+        lh.PeriodEnd, lh.Balance, lh.BalanceChangeAmount, lh.BalanceChangePct,
+        lh.TransferAmount, lh.TransferDescription, lh.InvestedAmount, lh.NetGain, lh.NetGainPct,
+        lh.Comment, lh.OrdersExecuted, lh.BalanceUpdateTime,
+        a.AllTimeHigh, a.AllTimeHighDate, a.DrawdownFromATH, a.DrawdownPctFromATH
+      from Accounts a
+      join Brokers b on a.BrokerID = b.BrokerID
+      join latest_history lh on a.AccountID = lh.AccountID and lh.rn = 1
+      join params
+      where
+        (CAST(a.Closed AS UNSIGNED) = 0) and
+        (params.accountName is null or a.`Name` like concat('%',params.accountName,'%')) and
+        (params.brokerName is null or b.`Name` like concat('%',params.brokerName,'%'))
+      order by a.`Name`;
+  account-history:
+    kind: mysql-sql
+    source: my-sql-source
+    description: |
+      Use this tool to retrieve historical account balance snapshots over time. Returns historical data for the specified rollup period (daily, weekly, or monthly). Only returns rows where account history records exist.
+      
+      By default returns aggregated totals across all accounts unless a specific account name is provided. When brokerName is specified without accountName, returns aggregated totals for all accounts with that broker. 
+      
+      When accountName is provided, returns individual account history (not aggregated). When accountName is NOT provided, returns aggregated history across accounts matching the broker filter (or all accounts if no broker specified).
+      
+      Unless the user specifies otherwise, use daily rollups (rollupPeriod = 1) and filter to the last 30 days using the dateAfter parameter (set to 30 days before today).
+      
+      All dates and times are displayed in US Eastern (America/New_York) timezone.
+    parameters:
+      - name: accountName
+        type: string
+        description: Filter by account name. Account name may be a substring of the full name. If not provided, returns aggregated totals across all accounts (or filtered by broker if brokerName is specified).
+        required: false
+      - name: brokerName
+        type: string
+        description: |
+          Filter accounts by broker. Uses case-insensitive substring matching. When users say "etrade accounts" or "my etrade", pass "e*trade" (matches "E*TRADE" in database). When users say "schwab accounts" or "my schwab", pass "schwab" (matches "Charles Schwab" in database). Pass null to include all brokers.
+        required: false
+      - name: rollupPeriod
+        type: integer
+        description: |
+          The time period for balance rollups. Values: 1=daily (default), 2=weekly, 3=monthly. If not provided, defaults to 1 (daily).
+        required: false
+      - name: dateAfter
+        type: string
+        description: Filter history records with PeriodEnd on or after this date. Format YYYY-MM-DD.
+        required: false
+      - name: dateBefore
+        type: string
+        description: Filter history records with PeriodEnd on or before this date. Format YYYY-MM-DD.
+        required: false
+      - name: sortBy
+        type: string
+        description: |
+          Column to sort results by. Allowed values: "PeriodEnd", "Balance", "BalanceChangeAmount", "BalanceChangePct", "TransferAmount", "InvestedAmount", "NetGain", "NetGainPct", "OrdersExecuted". Prefix with '-' for descending (e.g. "-PeriodEnd"). Default is "-PeriodEnd" (most recent first).
+        required: false
+      - name: maxRecords
+        type: integer
+        description: Maximum number of records to return. Defaults to 15 if not provided. Max allowed value is 500.
+        required: false
+    statement: |
+      with params as (select ? as accountName, ? as brokerName, COALESCE(CAST(? AS UNSIGNED), 1) as rollupPeriod,
+      COALESCE(?, DATE_SUB(CURDATE(), INTERVAL 30 DAY)) as dateAfter, ? as dateBefore, COALESCE(?, '-PeriodEnd') as sortBy, LEAST(COALESCE(CAST(? AS UNSIGNED), 15), 500) as maxRecords),
+      filtered_history as (
+        select h.AccountID, h.PeriodEnd, h.Balance, h.BalanceChangeAmount, h.BalanceChangePct,
+          h.TransferAmount, h.TransferDescription, h.InvestedAmount, h.NetGain, h.NetGainPct,
+          h.Comment, h.OrdersExecuted,
+          a.`Name` as AccountName,
+          a.AllTimeHigh, a.AllTimeHighDate, a.DrawdownFromATH, a.DrawdownPctFromATH
+        from AccountHistory h
+        join Accounts a on h.AccountID = a.AccountID
+        join Brokers b on a.BrokerID = b.BrokerID
+        join params
+        where
+          h.RollupPeriod = (select params.rollupPeriod from params) and
+          (CAST(a.Closed AS UNSIGNED) = 0) and
+          (params.accountName is null or a.`Name` like concat('%',params.accountName,'%')) and
+          (params.brokerName is null or b.`Name` like concat('%',params.brokerName,'%')) and
+          h.PeriodEnd >= params.dateAfter and
+          (params.dateBefore is null or h.PeriodEnd <= params.dateBefore)
+      ),
+      aggregated as (
+        select 
+          case when params.accountName is null then 'All Accounts' else fh.AccountName end as AccountName,
+          fh.PeriodEnd,
+          sum(fh.Balance) as Balance,
+          sum(fh.BalanceChangeAmount) as BalanceChangeAmount,
+          case when sum(fh.Balance - fh.BalanceChangeAmount) = 0 then 0 
+               else (sum(fh.BalanceChangeAmount) / sum(fh.Balance - fh.BalanceChangeAmount)) * 100 
+          end as BalanceChangePct,
+          sum(fh.TransferAmount) as TransferAmount,
+          group_concat(distinct fh.TransferDescription separator '; ') as TransferDescription,
+          sum(fh.InvestedAmount) as InvestedAmount,
+          sum(fh.NetGain) as NetGain,
+          case when sum(fh.InvestedAmount) = 0 then 0 
+               else (sum(fh.NetGain) / sum(fh.InvestedAmount)) * 100 
+          end as NetGainPct,
+          group_concat(distinct fh.Comment separator '; ') as Comment,
+          sum(fh.OrdersExecuted) as OrdersExecuted,
+          max(fh.AllTimeHigh) as AllTimeHigh,
+          max(fh.AllTimeHighDate) as AllTimeHighDate,
+          max(fh.DrawdownFromATH) as DrawdownFromATH,
+          max(fh.DrawdownPctFromATH) as DrawdownPctFromATH
+        from filtered_history fh
+        cross join params
+        group by 
+          params.accountName,
+          case when params.accountName is null then 'All Accounts' else fh.AccountName end,
+          fh.PeriodEnd
+      ),
+      ranked as (
+        select AccountName, PeriodEnd, Balance, BalanceChangeAmount, BalanceChangePct,
+          TransferAmount, TransferDescription, InvestedAmount, NetGain, NetGainPct,
+          Comment, OrdersExecuted, AllTimeHigh, AllTimeHighDate, DrawdownFromATH, DrawdownPctFromATH,
+          (select params.maxRecords from params) as maxRecords,
+          ROW_NUMBER() OVER (
+            order by
+              case when (select params.sortBy from params) = 'PeriodEnd' then PeriodEnd end asc,
+              case when (select params.sortBy from params) = '-PeriodEnd' then PeriodEnd end desc,
+              case when (select params.sortBy from params) = 'Balance' then Balance end asc,
+              case when (select params.sortBy from params) = '-Balance' then Balance end desc,
+              case when (select params.sortBy from params) = 'BalanceChangeAmount' then BalanceChangeAmount end asc,
+              case when (select params.sortBy from params) = '-BalanceChangeAmount' then BalanceChangeAmount end desc,
+              case when (select params.sortBy from params) = 'BalanceChangePct' then BalanceChangePct end asc,
+              case when (select params.sortBy from params) = '-BalanceChangePct' then BalanceChangePct end desc,
+              case when (select params.sortBy from params) = 'TransferAmount' then TransferAmount end asc,
+              case when (select params.sortBy from params) = '-TransferAmount' then TransferAmount end desc,
+              case when (select params.sortBy from params) = 'InvestedAmount' then InvestedAmount end asc,
+              case when (select params.sortBy from params) = '-InvestedAmount' then InvestedAmount end desc,
+              case when (select params.sortBy from params) = 'NetGain' then NetGain end asc,
+              case when (select params.sortBy from params) = '-NetGain' then NetGain end desc,
+              case when (select params.sortBy from params) = 'NetGainPct' then NetGainPct end asc,
+              case when (select params.sortBy from params) = '-NetGainPct' then NetGainPct end desc,
+              case when (select params.sortBy from params) = 'OrdersExecuted' then OrdersExecuted end asc,
+              case when (select params.sortBy from params) = '-OrdersExecuted' then OrdersExecuted end desc,
+              PeriodEnd desc
+          ) as rn
+        from aggregated
+      )
+      select AccountName, PeriodEnd, Balance, BalanceChangeAmount, BalanceChangePct, TransferAmount, TransferDescription, InvestedAmount, NetGain, NetGainPct, Comment, OrdersExecuted, AllTimeHigh, AllTimeHighDate, DrawdownFromATH, DrawdownPctFromATH from ranked where rn <= maxRecords;
+
+  expected-moves:
+    kind: mysql-sql
+    source: my-sql-source
+    description: |
+      Query expected moves for a specific symbol from the ExpectedMoves table. By default this tool returns the initial expected moves (InitialValue = true). If the user is asking for the latest values, pass `latest = true` (this will return rows where InitialValue = false).
+
+      Default ExpiryType is "DAILY". Allowed values: "DAILY", "WEEKLY", "MONTHLY", "MONTHEND", "QUARTERLY". Pass "ALL" (case-insensitive) to return all expiry types (no ExpiryType filter).
+
+      Results are sorted by ExpiryDate ascending and dates/times are presented in US Eastern (America/New_York) timezone.
+    parameters:
+      - name: symbol
+        type: string
+        description: The symbol to query (exact match). This parameter is required.
+        required: true
+      - name: expiryType
+        type: string
+        description: |
+          Expiry type to filter on. Allowed values: "DAILY" (default), "WEEKLY", "MONTHLY", "MONTHEND", "QUARTERLY", or "ALL" to disable ExpiryType filtering.
+        required: false
+      - name: latest
+        type: boolean
+        description: |
+          If true, return latest values (InitialValue = false). If false or omitted, return initial values (InitialValue = true).
+        required: false
+    statement: |
+      with params as (select ? as symbol, COALESCE(UPPER(?), 'DAILY') as expiryType, COALESCE(CAST(? AS UNSIGNED), 0) as latest)
+      select em.ExpiryType,
+        CONVERT_TZ(em.ExpiryDate, 'UTC', 'America/New_York') as ExpiryDate,
+        em.IV, em.ClosingPrice,
+        em.OneSigmaHigh as ExpectedHigh, em.OneSigmaLow as ExpectedLow,
+        em.TwoSigmaHigh, em.TwoSigmaLow,
+        CONVERT_TZ(em.LastUpdated, 'UTC', 'America/New_York') as LastUpdated
+      from ExpectedMoves em
+      join params
+      where em.Symbol = params.symbol
+        and (params.expiryType = 'ALL' or em.ExpiryType = params.expiryType)
+        and (
+          (params.latest = 1 and CAST(em.InitialValue AS UNSIGNED) = 0) or
+          (params.latest = 0 and CAST(em.InitialValue AS UNSIGNED) = 1)
+        )
+      order by em.ExpiryDate asc;
+
+toolsets:
+  my-toolset:
+    - search-trades
+    - trade-history
+    - search-orders
+    - account-balances
+    - account-history
+    - expected-moves
