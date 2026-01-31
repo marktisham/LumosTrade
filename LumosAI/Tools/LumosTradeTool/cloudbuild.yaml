@@ -4,6 +4,8 @@ steps:
       - 'build'
       - '-t'
       - '${_IMAGE_URL}'
+      - '--build-arg'
+      - 'NODE_ENV=${_NODE_ENV}'
       - '-f'
       - 'LumosAI/Tools/LumosTradeTool/Dockerfile'
       - '.'
