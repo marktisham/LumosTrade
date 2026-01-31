@@ -63,14 +63,32 @@ echo "✓ Successfully loaded database configuration from environment and secret
 # Resolve paths relative to current working dir or script dir
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -x "${PWD}/toolbox" ] && [ -f "${PWD}/tools.yaml" ]; then
+if [ -f "${PWD}/tools.yaml" ]; then
   BASE_DIR="${PWD}"
-elif [ -x "${SCRIPT_DIR}/toolbox" ] && [ -f "${SCRIPT_DIR}/tools.yaml" ]; then
+elif [ -f "${SCRIPT_DIR}/tools.yaml" ]; then
   BASE_DIR="${SCRIPT_DIR}"
 else
-  echo_err "ERROR: Could not find 'toolbox' binary and 'tools.yaml' in either the current directory or ${SCRIPT_DIR}."
-  echo "Place both files in the same folder as this script or run the invoker from a directory that contains them." >&2
+  echo_err "ERROR: Could not find 'tools.yaml' in either the current directory or ${SCRIPT_DIR}."
   exit 1
+fi
+
+# Check if toolbox binary exists, download if missing
+if [ ! -x "${BASE_DIR}/toolbox" ]; then
+  echo "⚠️  Toolbox binary not found in ${BASE_DIR}"
+  echo "Downloading toolbox binary..."
+  
+  if [ -f "${SCRIPT_DIR}/download_toolbox.sh" ]; then
+    (cd "${BASE_DIR}" && bash "${SCRIPT_DIR}/download_toolbox.sh")
+    
+    if [ ! -x "${BASE_DIR}/toolbox" ]; then
+      echo_err "ERROR: Failed to download toolbox binary."
+      exit 1
+    fi
+    echo "✓ Toolbox binary downloaded successfully"
+  else
+    echo_err "ERROR: download_toolbox.sh not found in ${SCRIPT_DIR}."
+    exit 1
+  fi
 fi
 
 echo "Starting toolbox (tools.yaml from ${BASE_DIR}) in environment: ${LUMOS_ENVIRONMENT}"
