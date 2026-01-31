@@ -139,6 +139,8 @@ dist
 config/*.expanded.env
 config/*.secrets.json
 config/*.env.local
+config/*.env
+!config/template.env
 .env
 .env.local
 

@@ -19,17 +19,36 @@ echo "LumosTrade: ${LUMOS_TRADE_DIR}"
 
 # 1) Build LumosTrade so the local file dependency has dist output
 if [ -f "${LUMOS_ROOT_DIR}/package.json" ]; then
+  echo "Ensuring LumosTrade dependencies are installed..."
+  if [ ! -d "${LUMOS_TRADE_DIR}/node_modules" ]; then
+    echo "Installing LumosTrade dependencies..."
+    (cd "${LUMOS_TRADE_DIR}" && npm install)
+  fi
+  
   echo "Building LumosTrade..."
   (cd "${LUMOS_ROOT_DIR}" && npm run build:lumostrade)
+  
+  # Verify the build produced output
+  if [ ! -d "${LUMOS_TRADE_DIR}/dist" ] || [ ! -f "${LUMOS_TRADE_DIR}/dist/index.js" ]; then
+    echo "ERROR: LumosTrade build did not produce expected dist/index.js output." >&2
+    exit 1
+  fi
+  echo "✅ LumosTrade built successfully"
 fi
 
 # 2) Install deps + build this tool
 cd "${SCRIPT_DIR}"
 
 if [ ! -d node_modules ]; then
+  echo "Installing LumosTradeTool dependencies..."
   npm install
+else
+  # Ensure lumostrade link is fresh after rebuild
+  echo "Refreshing lumostrade dependency link..."
+  npm install lumostrade
 fi
 
+echo "Building LumosTradeTool..."
 npm run build
 
 echo "✅ LumosTradeTool build complete"

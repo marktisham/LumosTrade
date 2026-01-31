@@ -34,8 +34,42 @@ echo "📂 LumosApp directory: $SCRIPT_DIR"
 # Build all TypeScript packages from root
 echo "🔨 Building TypeScript packages..."
 cd "$ROOT_DIR"
-npm install || true
-npm run build:all || true
+
+# Ensure root dependencies are installed
+if [ ! -d node_modules ]; then
+  echo "Installing root dependencies..."
+  npm install
+fi
+
+# Build LumosTrade first (dependency of LumosApp)
+echo "Building LumosTrade..."
+if [ ! -d LumosTrade/node_modules ]; then
+  echo "Installing LumosTrade dependencies..."
+  (cd LumosTrade && npm install)
+fi
+npm run build:lumostrade
+
+# Verify LumosTrade build output
+if [ ! -d LumosTrade/dist ] || [ ! -f LumosTrade/dist/index.js ]; then
+  echo "ERROR: LumosTrade build did not produce expected dist/index.js output." >&2
+  exit 1
+fi
+echo "✅ LumosTrade built successfully"
+
+# Build LumosApp
+echo "Building LumosApp..."
+if [ ! -d LumosApp/node_modules ]; then
+  echo "Installing LumosApp dependencies..."
+  (cd LumosApp && npm install)
+fi
+npm run build:lumosapp
+
+# Verify LumosApp build output
+if [ ! -d LumosApp/dist ] || [ ! -f LumosApp/dist/index.js ]; then
+  echo "ERROR: LumosApp build did not produce expected dist/index.js output." >&2
+  exit 1
+fi
+echo "✅ LumosApp built successfully"
 
 # 2. BUILD
 echo "🔨 Building the container with Cloud Build and pushing to ${IMAGE_URL}..."
