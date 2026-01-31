@@ -19,6 +19,12 @@ echo "LumosTrade: ${LUMOS_TRADE_DIR}"
 
 # 1) Build LumosTrade so the local file dependency has dist output
 if [ -f "${LUMOS_ROOT_DIR}/package.json" ]; then
+  # Ensure root dependencies are installed (includes TypeScript)
+  if [ ! -d "${LUMOS_ROOT_DIR}/node_modules" ]; then
+    echo "Installing root dependencies (includes TypeScript)..."
+    (cd "${LUMOS_ROOT_DIR}" && npm install)
+  fi
+  
   echo "Ensuring LumosTrade dependencies are installed..."
   if [ ! -d "${LUMOS_TRADE_DIR}/node_modules" ]; then
     echo "Installing LumosTrade dependencies..."
