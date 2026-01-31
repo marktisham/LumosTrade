@@ -139,6 +139,8 @@ dist
 config/*.expanded.env
 config/*.secrets.json
 config/*.env.local
+config/*.env
+!config/template.env
 .env
 .env.local
 
@@ -162,4 +164,3 @@ npm-debug.log*
 .DS_Store
 session.db
 LumosAI/Tools/LumosDB/toolbox
-config/demo.env
