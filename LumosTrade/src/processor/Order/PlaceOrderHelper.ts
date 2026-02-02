@@ -8,6 +8,9 @@ import { Order } from '../../interfaces/Order';
 import { Account } from '../../interfaces/Account';
 import { OrderStatus } from '../../interfaces/OrderStatus';
 import { ErrorHelper, LogHelper } from '../..';
+import { Conductor } from '../Conductor';
+import { Quote } from '../../interfaces/Quote';
+import { PlaceOrder } from '../../interfaces/PlaceOrder';
 
 export class PlaceOrderHelper {
 
@@ -29,7 +32,9 @@ export class PlaceOrderHelper {
         return;
       }
 
-      const placedOrders: Array<{accountName: string; symbol: string; action: string; quantity: number; price: number; orderAmount: number}> = [];
+      const quotesMap = await this.FetchQuotesForOrders(orders);
+
+      const placedOrders: Array<{accountName: string; symbol: string; action: string; quantity: number; price: number; orderAmount: number; currentPrice?: number}> = [];
       const placementErrors: string[] = [];
       for (const order of orders) {
         try {
@@ -69,6 +74,7 @@ export class PlaceOrderHelper {
           console.log(`Successfully placed order, AccountID=${order.AccountID}, BrokerOrderID=${placeResp.BrokerOrderID}, Symbol=${order.Symbol}, Action=${order.Action.GetActionType()}, Quantity=${order.Quantity}, Price=${order.Price}`);
 
           // Capture placed order info for email summary
+          const quote = quotesMap.get(order.Symbol);
           placedOrders.push({
             accountName: acct?.Name || '',
             symbol: order.Symbol,
@@ -76,6 +82,7 @@ export class PlaceOrderHelper {
             quantity: order.Quantity,
             price: order.Price,
             orderAmount: order.OrderAmount,
+            currentPrice: quote?.Price,
           });
 
           // Update PlaceOrder row from response
@@ -105,6 +112,34 @@ export class PlaceOrderHelper {
 
     } catch (err) {
       ErrorHelper.LogErrorForGCP(err, 'ProcessOrders');
+    }
+  }
+
+  private static async FetchQuotesForOrders(orders: PlaceOrder[]): Promise<Map<string, Quote>> {
+    try {
+      await Conductor.RefreshAllQuotes();
+      
+      const quotesMap = new Map<string, Quote>();
+      const accountsToQuery = new Set<number>();
+      
+      for (const order of orders) {
+        accountsToQuery.add(order.AccountID);
+      }
+      
+      for (const accountId of accountsToQuery) {
+        const account = await DataAccess.GetAccount(accountId);
+        if (account) {
+          const accountQuotes = await DataAccess.GetQuotesMap(account);
+          for (const [symbol, quote] of accountQuotes) {
+            quotesMap.set(symbol, quote);
+          }
+        }
+      }
+      
+      return quotesMap;
+    } catch (err) {
+      console.warn('Failed to refresh quotes for orders:', err);
+      return new Map<string, Quote>();
     }
   }
 
@@ -181,7 +216,7 @@ export class PlaceOrderHelper {
   /**
    * Build the email subject and body for a list of placed orders.
    */
-  private static BuildPlacedOrdersEmail(placedOrders: Array<{accountName: string; symbol: string; action: string; quantity: number; price: number; orderAmount: number}>): { subject: string; body: string } {
+  private static BuildPlacedOrdersEmail(placedOrders: Array<{accountName: string; symbol: string; action: string; quantity: number; price: number; orderAmount: number; currentPrice?: number}>): { subject: string; body: string } {
     const count = placedOrders.length;
     const subject = `Placed ${count} new order${count === 1 ? '' : 's'}`;
 
@@ -203,7 +238,22 @@ export class PlaceOrderHelper {
     for (const p of placedOrders) {
       const price = Number.isFinite(p.price) ? `$${p.price.toFixed(2)}` : String(p.price);
       const amount = Number.isFinite(p.orderAmount) ? `$${p.orderAmount.toFixed(2)}` : String(p.orderAmount);
-      mdLines.push(`1. **Account:** ${escape(p.accountName)}  \n   **Symbol:** \`${escape(p.symbol)}\`  \n   **Action:** ${escape(p.action)}  \n   **Qty:** ${p.quantity}  \n   **Price:** ${price}  \n   **Amount:** ${amount}`);
+      const currentPrice = p.currentPrice != null && Number.isFinite(p.currentPrice) ? `$${p.currentPrice.toFixed(2)}` : null;
+      
+      const fields: string[] = [
+        `1. **Account:** ${escape(p.accountName)}`,
+        `   **Symbol:** \`${escape(p.symbol)}\``,
+        `   **Action:** ${escape(p.action)}`,
+        `   **Qty:** ${p.quantity}`,
+        `   **Order Price:** ${price}`,
+        `   **Amount:** ${amount}`,
+      ];
+      
+      if (currentPrice) {
+        fields.push(`   **Current Price:** ${currentPrice}`);
+      }
+      
+      mdLines.push(fields.join('  \n'));
     }
 
     const body = mdLines.join('\n\n');
