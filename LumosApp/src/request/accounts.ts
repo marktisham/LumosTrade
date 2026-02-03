@@ -186,6 +186,27 @@ export default async function accountsRequest(req: Request, res: Response) {
       refreshErrors = conductorError.FormatFailures();
     }
     
+    // Auto-refresh balances on initial page load if we're on a trading day and missing today's balances
+    if (!op && !periodEndParam) {
+      const now = new Date();
+      const isTradingDay = !DateUtils.IsWeekend(now);
+      
+      if (isTradingDay) {
+        const todayET = DateUtils.GetEasternToday();
+        
+        // Quick check: do we have any balance records for today?
+        const todayFilter = BalanceFilter.fromQueryParams(undefined, undefined, todayET, String(RollupPeriod.Daily));
+        const todayResults = await AppDataAccess.GetMostRecentAccountHistory(todayFilter);
+        const hasBalancesForToday = todayResults.length > 0 && todayResults.every(r => r.balance != null);
+        
+        if (!hasBalancesForToday) {
+          // Trigger automatic balance refresh
+          const conductorError = await Conductor.RefreshAccountBalances();
+          refreshErrors = conductorError.FormatFailures();
+        }
+      }
+    }
+    
     // Parse rollup period (default to Daily)
     let rollupPeriod = RollupPeriod.Daily;
     if (rollupPeriodParam) {
