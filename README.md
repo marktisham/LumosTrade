@@ -63,18 +63,6 @@ See also the [Project Overview](docs/OVERVIEW.md)
 
 Check out the [Full Playlist](https://youtube.com/playlist?list=PLFIgJytZ9IRceh-fO-vsr0ZJqcekVVryz&si=DP__y0EJTuuvaIMu) on youtube.
 
-## Live Demo
-Try out Lumos Trade with simulated data:
-<p>
-  <a href="https://lumos-app-210429327960.us-east4.run.app/" target="_blank" rel="noopener" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#16a34a;color:white;text-decoration:none;font-weight:600;">
-    Launch Demo
-  </a>
-</p>
-
-Password: demo
-
-*Warning: You may hit quota/resource limits in the AI agent tools. If you do, just try again later or watch the [video](https://youtu.be/XrKq4WUwWXA?si=RcNziSLh0r_YYEmX). This stuff costs money!*
-
 ---
 
 ## More Information
