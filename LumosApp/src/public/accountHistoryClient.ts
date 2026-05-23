@@ -482,6 +482,19 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
         // Enable crosshairs for both axes via tooltip and make tooltip follow pointer (snap=0)
         crosshairs: [{ color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }, { color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }],
         snap: 0,
+        // Position tooltip offset from pointer so crosshairs remain visible
+        positioner: function (labelWidth: number, labelHeight: number, point: any) {
+          const chart = (this as any).chart;
+          const px = point && typeof point.plotX === 'number' ? point.plotX + chart.plotLeft : (chart.pointer && chart.pointer.chartX ? chart.pointer.chartX : chart.plotLeft + 20);
+          const py = point && typeof point.plotY === 'number' ? point.plotY + chart.plotTop : (chart.pointer && chart.pointer.chartY ? chart.pointer.chartY : chart.plotTop + 20);
+          let x = px + 24;
+          let y = py + 24;
+          if (x + labelWidth > chart.chartWidth - 8) x = chart.chartWidth - labelWidth - 8;
+          if (y + labelHeight > chart.chartHeight - 8) y = chart.chartHeight - labelHeight - 8;
+          if (x < 8) x = 8;
+          if (y < 8) y = 8;
+          return { x, y };
+        },
         xDateFormat: '%b %d, %Y',
         valuePrefix: '$',
         valueDecimals: 2
@@ -688,6 +701,19 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
         // Enable crosshairs for both axes via tooltip and make tooltip follow pointer
         crosshairs: [{ color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }, { color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }],
         snap: 0,
+        // Position tooltip offset from pointer so crosshairs remain visible
+        positioner: function (labelWidth: number, labelHeight: number, point: any) {
+          const chart = (this as any).chart;
+          const px = point && typeof point.plotX === 'number' ? point.plotX + chart.plotLeft : (chart.pointer && chart.pointer.chartX ? chart.pointer.chartX : chart.plotLeft + 20);
+          const py = point && typeof point.plotY === 'number' ? point.plotY + chart.plotTop : (chart.pointer && chart.pointer.chartY ? chart.pointer.chartY : chart.plotTop + 20);
+          let x = px + 24;
+          let y = py + 24;
+          if (x + labelWidth > chart.chartWidth - 8) x = chart.chartWidth - labelWidth - 8;
+          if (y + labelHeight > chart.chartHeight - 8) y = chart.chartHeight - labelHeight - 8;
+          if (x < 8) x = 8;
+          if (y < 8) y = 8;
+          return { x, y };
+        },
         valuePrefix: '$',
         valueDecimals: 2
       },
