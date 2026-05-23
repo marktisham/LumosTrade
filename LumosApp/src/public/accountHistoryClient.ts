@@ -447,7 +447,15 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
           format: '{value:%b %e, %Y}',
           style: { color: '#c8c8c8' }
         },
-        plotLines: getMilestonePlotLines(currentAccountId, appliedStartDate || null, appliedEndDate || null)
+        plotLines: getMilestonePlotLines(currentAccountId, appliedStartDate || null, appliedEndDate || null),
+        // Show a vertical crosshair line that tracks the cursor; do not snap to points so it follows pointer
+        crosshair: {
+          color: 'rgba(200,200,200,0.75)',
+          dashStyle: 'ShortDash',
+          width: 1,
+          zIndex: 5,
+          snap: false
+        }
       },
       yAxis: {
         title: { text: null },
@@ -459,10 +467,21 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
             return '$' + Highcharts.numberFormat(this.value, 0, '.', ',');
           }
         }
+        ,
+        // Show a horizontal crosshair line that tracks the cursor; do not snap to points so it follows pointer
+        crosshair: {
+          color: 'rgba(200,200,200,0.75)',
+          dashStyle: 'ShortDash',
+          width: 1,
+          zIndex: 5,
+          snap: false
+        }
       },
       tooltip: {
         shared: true,
-        crosshairs: true,
+        // Enable crosshairs for both axes via tooltip and make tooltip follow pointer (snap=0)
+        crosshairs: [{ color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }, { color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }],
+        snap: 0,
         xDateFormat: '%b %d, %Y',
         valuePrefix: '$',
         valueDecimals: 2
@@ -527,14 +546,65 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
       // Update xAxis plotLines to reflect current account filter
       accountHistoryChart.xAxis[0].update({
         plotLines: getMilestonePlotLines(currentAccountId, appliedStartDate || null, appliedEndDate || null)
+      ,
+        crosshair: {
+          color: 'rgba(200,200,200,0.75)',
+          dashStyle: 'ShortDash',
+          width: 1,
+          zIndex: 5
+        }
+      }, false);
+      // Ensure yAxis crosshair remains configured after update
+      accountHistoryChart.yAxis[0].update({
+        crosshair: {
+          color: 'rgba(200,200,200,0.75)',
+          dashStyle: 'ShortDash',
+          width: 1,
+          zIndex: 5
+        }
       }, false);
       accountHistoryChart.redraw();
+      // Attach a mouseleave handler to hide tooltip/crosshairs (Highcharts handles pointer movement)
+      try {
+        if (!container.hasAttribute('data-crosshair-handler')) {
+          container.addEventListener('mouseleave', () => {
+            try {
+              if (accountHistoryChart && accountHistoryChart.tooltip) accountHistoryChart.tooltip.hide(0);
+              if (accountHistoryChart && accountHistoryChart.xAxis) accountHistoryChart.xAxis.forEach((ax: any) => ax.hideCrosshair && ax.hideCrosshair());
+              if (accountHistoryChart && accountHistoryChart.yAxis) accountHistoryChart.yAxis.forEach((ay: any) => ay.hideCrosshair && ay.hideCrosshair());
+            } catch (err) { /* ignore */ }
+          });
+          container.setAttribute('data-crosshair-handler', '1');
+        }
+      } catch (err) { /* ignore */ }
     } else {
       // Recreate chart when switching types or if existing chart doesn't match expected series
       if (accountHistoryChart) {
         try { accountHistoryChart.destroy(); } catch (err) { /* ignore */ }
       }
       accountHistoryChart = Highcharts.chart(container, chartOptions);
+      // Attach pointer handlers: move updates crosshair to pointer, leave hides it
+      try {
+        if (!container.hasAttribute('data-crosshair-handler')) {
+          container.addEventListener('mousemove', (ev) => {
+            try {
+              const chart = accountHistoryChart;
+              if (!chart) return;
+              const e = chart.pointer.normalize(ev);
+              if (chart.xAxis) chart.xAxis.forEach((ax: any) => ax.drawCrosshair && ax.drawCrosshair(e));
+              if (chart.yAxis) chart.yAxis.forEach((ay: any) => ay.drawCrosshair && ay.drawCrosshair(e));
+            } catch (err) { /* ignore */ }
+          });
+          container.addEventListener('mouseleave', () => {
+            try {
+              if (accountHistoryChart && accountHistoryChart.tooltip) accountHistoryChart.tooltip.hide(0);
+              if (accountHistoryChart && accountHistoryChart.xAxis) accountHistoryChart.xAxis.forEach((ax: any) => ax.hideCrosshair && ax.hideCrosshair());
+              if (accountHistoryChart && accountHistoryChart.yAxis) accountHistoryChart.yAxis.forEach((ay: any) => ay.hideCrosshair && ay.hideCrosshair());
+            } catch (err) { /* ignore */ }
+          });
+          container.setAttribute('data-crosshair-handler', '1');
+        }
+      } catch (err) { /* ignore */ }
     }
   } else {
     // Gain History: Column chart with period-specific Gain label
@@ -577,7 +647,15 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
           format: '{value:%b %e, %Y}',
           style: { color: '#c8c8c8' }
         },
-        plotLines: getMilestonePlotLines(currentAccountId, appliedStartDate || null, appliedEndDate || null)
+        plotLines: getMilestonePlotLines(currentAccountId, appliedStartDate || null, appliedEndDate || null),
+        // Show a vertical crosshair line that tracks the cursor
+        crosshair: {
+          color: 'rgba(200,200,200,0.75)',
+          dashStyle: 'ShortDash',
+          width: 1,
+          zIndex: 5,
+          snap: false
+        }
       },
       yAxis: {
         title: { text: null },
@@ -595,9 +673,21 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
           width: 1,
           zIndex: 2
         }]
+        ,
+        // Show a horizontal crosshair line that tracks the cursor; do not snap to points
+        crosshair: {
+          color: 'rgba(200,200,200,0.75)',
+          dashStyle: 'ShortDash',
+          width: 1,
+          zIndex: 5,
+          snap: false
+        }
       },
       tooltip: {
         xDateFormat: '%b %d, %Y',
+        // Enable crosshairs for both axes via tooltip and make tooltip follow pointer
+        crosshairs: [{ color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }, { color: 'rgba(200,200,200,0.75)', dashStyle: 'ShortDash', width: 1 }],
+        snap: 0,
         valuePrefix: '$',
         valueDecimals: 2
       },
@@ -631,6 +721,28 @@ const initializeOrUpdateChart = (history: AccountHistoryBalanceRow[], appliedSta
       accountHistoryChart.destroy();
     }
     accountHistoryChart = Highcharts.chart(container, chartOptions);
+    // Attach pointer handlers: move updates crosshair to pointer, leave hides it
+    try {
+      if (!container.hasAttribute('data-crosshair-handler')) {
+        container.addEventListener('mousemove', (ev) => {
+          try {
+            const chart = accountHistoryChart;
+            if (!chart) return;
+            const e = chart.pointer.normalize(ev);
+            if (chart.xAxis) chart.xAxis.forEach((ax: any) => ax.drawCrosshair && ax.drawCrosshair(e));
+            if (chart.yAxis) chart.yAxis.forEach((ay: any) => ay.drawCrosshair && ay.drawCrosshair(e));
+          } catch (err) { /* ignore */ }
+        });
+        container.addEventListener('mouseleave', () => {
+          try {
+            if (accountHistoryChart && accountHistoryChart.tooltip) accountHistoryChart.tooltip.hide(0);
+            if (accountHistoryChart && accountHistoryChart.xAxis) accountHistoryChart.xAxis.forEach((ax: any) => ax.hideCrosshair && ax.hideCrosshair());
+            if (accountHistoryChart && accountHistoryChart.yAxis) accountHistoryChart.yAxis.forEach((ay: any) => ay.hideCrosshair && ay.hideCrosshair());
+          } catch (err) { /* ignore */ }
+        });
+        container.setAttribute('data-crosshair-handler', '1');
+      }
+    } catch (err) { /* ignore */ }
   }
 };
 
