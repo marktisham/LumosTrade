@@ -91,7 +91,7 @@ export function getHomeData(bookmarks: any = {}) {
           {
             url: '/placeOrders',
             label: 'Place Orders',
-            description: 'Place daily extended hours orders that will resubmit every day (7am ET) until filled or cancelled.',
+            description: 'Place daily extended hours orders that will resubmit every day (4am ET) until filled or cancelled.',
             icon: 'fa-solid fa-calendar-plus',
             primary: false,
             shortcuts: []

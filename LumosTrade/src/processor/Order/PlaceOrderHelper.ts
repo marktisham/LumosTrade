@@ -16,7 +16,7 @@ export class PlaceOrderHelper {
 
 
   // (re)process any configured orders that are not currently OPEN or EXECUTED
-  // This will be called daily at 7:01 AM on a scheduled job to re-open expired
+  // This will be called daily at 4:01 AM on a scheduled job to re-open expired
   // extended hours orders (since etrade only allows extended hours orders to be open
   // 1 day at a time, from 7am-8pm EST). 
   // This function is also called by the UI if user wants to open a new order immediately.

@@ -1368,7 +1368,7 @@ fi
 	echo "  • expectedMoves  - calculate daily expected moves"
 	echo "                   (recommended 4:15pm ET, Mon-Fri)"
 	echo "  • processOrders  - place new extended-hours orders"
-	echo "                   (recommended 7:01am ET, Mon-Fri)"
+	echo "                   (recommended 4:01am ET, Mon-Fri)"
 	echo "  • testAccessTokens - check token expirations in next 48 hours"
 	echo "                   (daily, any time)"
 	echo
