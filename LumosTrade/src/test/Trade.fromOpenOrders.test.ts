@@ -1617,4 +1617,20 @@ describe('Trade.CreateFromOpenOrders', () => {
     // Note: TotalGain != RealizedGain because trade is partially open
   });
 
+  it('should keep the existing TradeID when a new order sorts ahead of the existing orders', () => {
+    const executedTime = new Date('2023-01-01T10:00:00Z');
+    // Repair order: no BrokerOrderID or TradeID yet, same ExecutedTime as the existing order
+    const repairOrder = new Order(null, null, AAPL_SYMBOL, executedTime, new OrderActionBuy(), 5, 10, 50, 0);
+    const existingOrder = new Order(1, 1, AAPL_SYMBOL, executedTime, new OrderActionBuy(), 10, 10, 100, 0, null, 100, 7);
+    const trade = Trade.CreateOpenTradeFromOrders([repairOrder, existingOrder], mockAccount(), null);
+    expect(trade.TradeID).toBe(7);
+    expect(trade.OpenQuantity).toBe(15);
+  });
+
+  it('should have a null TradeID when no orders belong to a trade yet', () => {
+    const order = new Order(1, 1, AAPL_SYMBOL, new Date('2023-01-01T10:00:00Z'), new OrderActionBuy(), 10, 10, 100, 0);
+    const trade = Trade.CreateOpenTradeFromOrders([order], mockAccount(), null);
+    expect(trade.TradeID).toBeNull();
+  });
+
 });

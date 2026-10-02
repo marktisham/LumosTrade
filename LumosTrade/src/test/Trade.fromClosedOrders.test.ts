@@ -875,4 +875,15 @@ describe('Trade.CreateFromClosedOrders', () => {
 
 
 
+  it('should keep the existing TradeID when a repair order sorts ahead of the existing orders', () => {
+    const openTime = new Date('2023-01-01T10:00:00Z');
+    // Repair order: no BrokerOrderID or TradeID, same ExecutedTime as the existing open order
+    const repairOrder = new Order(null, null, AAPL_SYMBOL, openTime, new OrderActionBuy(), 5, 10, 50, 0);
+    const existingOrder = new Order(1, 1, AAPL_SYMBOL, openTime, new OrderActionBuy(), 10, 10, 100, 0, null, 100, 7);
+    const closeOrder = new Order(2, 1, AAPL_SYMBOL, new Date('2023-01-02T10:00:00Z'), new OrderActionSell(), 15, 12, 180, 0);
+    const trade = Trade.CreateClosedTradeFromOrders([repairOrder, existingOrder, closeOrder], mockAccount(), null);
+    expect(trade.TradeID).toBe(7);
+    expect(trade.Closed).toBe(true);
+  });
+
 });

@@ -139,9 +139,14 @@ export class Trade {
     // If any orders were adjusted, then the trade is considered manually adjusted
     const manuallyAdjusted = orders.some(o => (o as any).ManuallyAdjusted === true);
 
+    // Reuse the existing trade if any order already belongs to one. A newly added order
+    // (e.g. a repair order with a null BrokerOrderID) can sort ahead of the existing orders,
+    // so the first order alone may not carry the TradeID. Missing this creates a duplicate trade.
+    const existingTradeID = orders.find(o => o.TradeID != null)?.TradeID ?? null;
+
     return new Trade({
       AccountID: account.AccountID ?? 0,
-      TradeID: firstOrder.TradeID ?? null,
+      TradeID: existingTradeID,
       Symbol: firstOrder.Symbol,
       LongTrade: firstOrder.Action.IsLongTrade(),
       WinningTrade: null,

@@ -9,6 +9,8 @@ import { Trade } from '../..';
 
 export class RepairOneOpenTrade {
 
+  private static readonly REPAIR_ORDER_OFFSET_MS = 1000;
+
   public static async Repair(account : Account, trade: Trade, targetQty: number, targetPrice: number | null) : Promise<boolean> {
     let orders: Order[] = await DataAccess.GetOrdersForTrade(account, trade);
     if (orders.length === 0) {
@@ -74,7 +76,10 @@ export class RepairOneOpenTrade {
         deltaOrderPrice = RoundUtil.RoundForDB(deltaOrderPrice)!;
     }
 
-    const executedTime = new Date(lastOrder.ExecutedTime.getTime());
+    // Place the repair order after the last order so it sorts last. With the same ExecutedTime, its
+    // null BrokerOrderID sorts first, which can put a reducing order ahead of the orders it reduces.
+    // ExecutedTime is stored with second precision, so offset by a full second.
+    const executedTime = new Date(lastOrder.ExecutedTime.getTime() + this.REPAIR_ORDER_OFFSET_MS);
     const fees = 0;
     const orderAmount = adjustmentQty * deltaOrderPrice;
 
